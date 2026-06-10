@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.auth.mapper.SysMenuMapper">
+
+    <resultMap id="SysMenuMap" type="com.example.auth.entity.SysMenu">
+        <id column="id" property="id"/>
+        <result column="menu_name" property="name"/>
+        <result column="menu_path" property="path"/>
+        <result column="menu_icon" property="icon"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="menu_type" property="menuType"/>
+        <result column="perm_code" property="permCode"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 根据用户ID查询其有权限的菜单(menu_type=1 的目录/菜单项) -->
+    <select id="selectMenusByUserId" resultMap="SysMenuMap">
+        SELECT DISTINCT m.id, m.menu_name, m.menu_path, m.menu_icon, m.parent_id,
+               m.sort_order, m.menu_type, m.perm_code, m.status, m.create_time
+        FROM sys_user_role ur
+        INNER JOIN sys_role r ON ur.role_id = r.id
+        INNER JOIN sys_role_menu rm ON r.id = rm.role_id
+        INNER JOIN sys_menu m ON rm.menu_id = m.id
+        WHERE ur.user_id = #{userId}
+          AND r.status = 1
+          AND m.status = 1
+          AND m.menu_type = 1
+        ORDER BY m.parent_id ASC, m.sort_order ASC
+    </select>
+
+    <!-- 根据用户ID查询其所有权限编码(perm_code,用于按钮级权限) -->
+    <select id="selectPermCodesByUserId" resultType="java.lang.String">
+        SELECT DISTINCT m.perm_code
+        FROM sys_user_role ur
+        INNER JOIN sys_role r ON ur.role_id = r.id
+        INNER JOIN sys_role_menu rm ON r.id = rm.role_id
+        INNER JOIN sys_menu m ON rm.menu_id = m.id
+        WHERE ur.user_id = #{userId}
+          AND r.status = 1
+          AND m.status = 1
+          AND m.perm_code IS NOT NULL
+          AND m.perm_code != ''
+    </select>
+
+    <select id="selectAllMenus" resultMap="SysMenuMap">
+        SELECT id,menu_name,menu_path,menu_icon,parent_id,sort_order,menu_type,perm_code,status,create_time
+        FROM sys_menu
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="selectMenuIdsByRoleId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT menu_id
+        FROM sys_role_menu
+        WHERE role_id = #{roleId}
+    </select>
+
+</mapper>

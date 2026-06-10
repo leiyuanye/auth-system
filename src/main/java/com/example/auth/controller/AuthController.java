@@ -1,0 +1,27 @@
+package com.example.auth.controller;
+
+import com.example.auth.common.Result;
+import com.example.auth.dto.LoginRequest;
+import com.example.auth.dto.LoginUser;
+import com.example.auth.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("/login")
+    public Result<LoginUser> login(@RequestBody LoginRequest request) {
+        try {
+            LoginUser user = authService.login(request);
+            return Result.ok(user);
+        } catch (Exception e) {
+            return Result.fail(401, e.getMessage());
+        }
+    }
+}
