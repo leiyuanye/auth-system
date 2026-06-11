@@ -168,6 +168,29 @@ CREATE TABLE phone_card (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='手机卡表';
 
 -- ============================================================
+-- 服务器表
+-- ============================================================
+DROP TABLE IF EXISTS sys_server;
+CREATE TABLE sys_server (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '服务器ID',
+    server_name VARCHAR(128) DEFAULT NULL COMMENT '服务器名称',
+    ip_address VARCHAR(64) DEFAULT NULL COMMENT 'IP地址',
+    server_type VARCHAR(64) DEFAULT NULL COMMENT '服务器类型: 物理服务器/云服务器/虚拟服务器',
+    location VARCHAR(128) DEFAULT NULL COMMENT '所在机房',
+    specs VARCHAR(128) DEFAULT NULL COMMENT '配置(如 16核32G/500G SSD)',
+    server_status TINYINT DEFAULT 1 COMMENT '运行状态: 1=运行中 2=维护中 3=已下线(在用服务器用)',
+    stock_status VARCHAR(16) DEFAULT NULL COMMENT '库存状态: 库存/已借出/报废(备用服务器用)',
+    card_type TINYINT DEFAULT 1 COMMENT '类型标识: 1=在用 2=备用',
+    remark VARCHAR(512) DEFAULT NULL COMMENT '备注',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (id),
+    KEY idx_ip (ip_address),
+    KEY idx_card_type (card_type),
+    KEY idx_server_status (server_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务器表';
+
+-- ============================================================
 -- 初始化数据
 -- ============================================================
 
@@ -214,6 +237,19 @@ INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realnam
 ('89860987654321001', 1, 'XX科技有限公司', '13811112222', NULL, NULL, '', '39元/月', 1, 2, '库存备用卡-01'),
 ('89860987654321002', 2, 'YY通信服务中心', '13811113333', NULL, NULL, '', '49元/月', 1, 2, '库存备用卡-02'),
 ('89860987654321003', 3, 'ZZ网络科技', '13811114444', NULL, NULL, '', '59元/月', 2, 2, '需二次实名的备用卡');
+
+-- 服务器示例数据（在用 card_type=1）
+INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, server_status, stock_status, card_type, remark) VALUES
+('DB-Master-01', '192.168.1.101', '物理服务器', '北京机房-A区', '64核128G/2T SSD', 1, NULL, 1, '主数据库服务器'),
+('APP-Server-01', '192.168.1.102', '云服务器', '阿里云-华北', '8核16G/200G SSD', 1, NULL, 1, '应用服务器'),
+('Cache-Server-01', '192.168.1.103', '物理服务器', '北京机房-B区', '32核64G/500G SSD', 2, NULL, 1, '缓存服务器'),
+('Backup-Server-01', '192.168.1.104', '物理服务器', '上海机房', '16核32G/8T HDD', 1, NULL, 1, '备份服务器');
+
+-- 服务器示例数据（备用 card_type=2）
+INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, server_status, stock_status, card_type, remark) VALUES
+('Spare-Server-01', '192.168.2.101', '物理服务器', '备用机房', '32核64G/1T SSD', NULL, '库存', 2, '备用服务器-01'),
+('Spare-Server-02', '192.168.2.102', '云服务器', '阿里云-华东', '8核16G/200G SSD', NULL, '已借出', 2, '已借给技术部测试'),
+('Spare-Server-03', '192.168.2.103', '物理服务器', '备用机房', '16核32G/500G HDD', NULL, '库存', 2, '备用服务器-03');
 
 -- ============================================================
 -- 菜单数据

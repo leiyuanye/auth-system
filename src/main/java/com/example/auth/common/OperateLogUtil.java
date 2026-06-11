@@ -84,6 +84,15 @@ public class OperateLogUtil {
         FIELD_LABEL.put("perms", "权限标识");
         FIELD_LABEL.put("icon", "图标");
 
+        // ----- 服务器 (sys_server) -----
+        FIELD_LABEL.put("serverName", "服务器名称");
+        FIELD_LABEL.put("ipAddress", "IP地址");
+        FIELD_LABEL.put("serverType", "服务器类型");
+        FIELD_LABEL.put("location", "所在机房");
+        FIELD_LABEL.put("specs", "配置");
+        FIELD_LABEL.put("serverStatus", "运行状态");
+        FIELD_LABEL.put("stockStatus", "库存状态");
+
         // ----- 字段值映射 -----
         // 手机卡状态: 1=正常, 2=二次实名, 3=欠费
         Map<String, String> cardStatusMap = new HashMap<>();
@@ -117,6 +126,13 @@ public class OperateLogUtil {
         menuTypeMap.put("C", "菜单");
         menuTypeMap.put("F", "按钮");
         FIELD_VALUE_LABEL.put("menuType", menuTypeMap);
+
+        // 服务器运行状态: 1=运行中 2=维护中 3=已下线
+        Map<String, String> serverStatusMap = new HashMap<>();
+        serverStatusMap.put("1", "运行中");
+        serverStatusMap.put("2", "维护中");
+        serverStatusMap.put("3", "已下线");
+        FIELD_VALUE_LABEL.put("serverStatus", serverStatusMap);
 
         // 菜单显示状态: 0=显示, 1=隐藏
         Map<String, String> visibleMap = new HashMap<>();

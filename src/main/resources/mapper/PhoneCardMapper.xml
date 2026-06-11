@@ -103,4 +103,57 @@
         DELETE FROM phone_card WHERE id = #{id}
     </delete>
 
+    <!-- ==================== 统计用 ==================== -->
+    <select id="countTotal" resultType="int">
+        SELECT COUNT(*) FROM phone_card
+    </select>
+
+    <select id="countByCardType" resultType="int">
+        SELECT COUNT(*) FROM phone_card
+        <where>
+            <if test="cardType != null">
+                AND card_type = #{cardType}
+            </if>
+        </where>
+    </select>
+
+    <select id="countByCardStatus" resultType="int">
+        SELECT COUNT(*) FROM phone_card
+        <where>
+            <if test="cardStatus != null">
+                AND card_status = #{cardStatus}
+            </if>
+        </where>
+    </select>
+
+    <select id="countByAgent" resultType="java.util.Map">
+        SELECT
+            agent_name AS agentName,
+            COUNT(*) AS count
+        FROM phone_card
+        WHERE agent_name IS NOT NULL AND agent_name != ''
+        GROUP BY agent_name
+        ORDER BY count DESC
+    </select>
+
+    <select id="countByStatusGroup" resultType="java.util.Map">
+        SELECT
+            card_status AS cardStatus,
+            COUNT(*) AS count
+        FROM phone_card
+        GROUP BY card_status
+    </select>
+
+    <select id="monthlyExceptionProcess" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(update_time, '%Y-%m') AS monthLabel,
+            COUNT(*) AS count
+        FROM phone_card
+        WHERE update_time IS NOT NULL
+          AND card_status IS NOT NULL
+        GROUP BY DATE_FORMAT(update_time, '%Y-%m')
+        ORDER BY monthLabel ASC
+        LIMIT 12
+    </select>
+
 </mapper>
