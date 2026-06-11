@@ -5,36 +5,35 @@
     <resultMap id="PhoneRealnameMap" type="com.example.auth.entity.PhoneRealname">
         <id column="id" property="id"/>
         <result column="real_name" property="realName"/>
-        <result column="id_card" property="idCard"/>
         <result column="phone" property="phone"/>
         <result column="department" property="department"/>
-        <result column="status" property="status"/>
+        <result column="scan_status" property="scanStatus"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
     </resultMap>
 
     <!-- ============ 查询 ============ -->
     <select id="selectAll" resultMap="PhoneRealnameMap">
-        SELECT id, real_name, id_card, phone, department, status, remark, create_time
+        SELECT id, real_name, phone, department, scan_status, remark, create_time
         FROM phone_realname
         ORDER BY id DESC
     </select>
 
     <select id="selectById" resultMap="PhoneRealnameMap">
-        SELECT id, real_name, id_card, phone, department, status, remark, create_time
+        SELECT id, real_name, phone, department, scan_status, remark, create_time
         FROM phone_realname
         WHERE id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="PhoneRealnameMap">
-        SELECT id, real_name, id_card, phone, department, status, remark, create_time
+        SELECT id, real_name, phone, department, scan_status, remark, create_time
         FROM phone_realname
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (real_name LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
             </if>
-            <if test="status != null">
-                AND status = #{status}
+            <if test="scanStatus != null">
+                AND scan_status = #{scanStatus}
             </if>
         </where>
         ORDER BY id DESC
@@ -49,16 +48,16 @@
             <if test="keyword != null and keyword != ''">
                 AND (real_name LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
             </if>
-            <if test="status != null">
-                AND status = #{status}
+            <if test="scanStatus != null">
+                AND scan_status = #{scanStatus}
             </if>
         </where>
     </select>
 
     <!-- ============ 新增 ============ -->
     <insert id="insert" parameterType="com.example.auth.entity.PhoneRealname" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO phone_realname (real_name, id_card, phone, department, status, remark, create_time)
-        VALUES (#{realName}, #{idCard}, #{phone}, #{department}, #{status}, #{remark}, NOW())
+        INSERT INTO phone_realname (real_name, phone, department, scan_status, remark, create_time)
+        VALUES (#{realName}, #{phone}, #{department}, #{scanStatus}, #{remark}, NOW())
     </insert>
 
     <!-- ============ 更新 ============ -->
@@ -66,10 +65,9 @@
         UPDATE phone_realname
         <set>
             <if test="realName != null">real_name = #{realName},</if>
-            <if test="idCard != null">id_card = #{idCard},</if>
             <if test="phone != null">phone = #{phone},</if>
             <if test="department != null">department = #{department},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="scanStatus != null">scan_status = #{scanStatus},</if>
             <if test="remark != null">remark = #{remark},</if>
         </set>
         WHERE id = #{id}

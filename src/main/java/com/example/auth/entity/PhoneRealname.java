@@ -7,10 +7,9 @@ import java.util.Date;
 public class PhoneRealname {
     private Long id;
     private String realName;
-    private String idCard;
     private String phone;
     private String department;
-    private Integer status;
+    private Integer scanStatus;
     private String remark;
     private Date createTime;
 }

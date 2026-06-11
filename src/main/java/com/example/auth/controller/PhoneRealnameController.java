@@ -21,17 +21,17 @@ public class PhoneRealnameController {
 
     /**
      * 分页查询实名人员列表
-     * GET /api/phone/realnames?keyword=&status=&page=1&size=10
+     * GET /api/phone/realnames?keyword=&scanStatus=&page=1&size=10
      */
     @GetMapping
     public Result<PageResult<PhoneRealname>> list(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Integer scanStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<PhoneRealname> list = realnameMapper.selectByCondition(keyword, status, offset, size);
-        int total = realnameMapper.countByCondition(keyword, status);
+        List<PhoneRealname> list = realnameMapper.selectByCondition(keyword, scanStatus, offset, size);
+        int total = realnameMapper.countByCondition(keyword, scanStatus);
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
@@ -52,8 +52,8 @@ public class PhoneRealnameController {
         if (realname.getRealName() == null || realname.getRealName().trim().isEmpty()) {
             return Result.fail("真实姓名不能为空");
         }
-        if (realname.getStatus() == null) {
-            realname.setStatus(1);
+        if (realname.getScanStatus() == null) {
+            realname.setScanStatus(1);
         }
         realnameMapper.insert(realname);
         Map<String, Object> data = new HashMap<>();

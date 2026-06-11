@@ -6,7 +6,7 @@
 --   - 系统管理（用户管理/角色管理/菜单管理）
 --   - 手机卡管理（在用手机卡/备用手机卡/数据总览、代理商管理）
 --   - 服务器管理（在用服务器/备用服务器/服务器总览）
---   - 实名人员管理（实名人员列表）
+--   - 实名人员管理（实名人员）
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS auth_system DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -112,10 +112,9 @@ DROP TABLE IF EXISTS phone_realname;
 CREATE TABLE phone_realname (
     id BIGINT NOT NULL AUTO_INCREMENT COMMENT '实名人员ID',
     real_name VARCHAR(64) NOT NULL COMMENT '真实姓名',
-    id_card VARCHAR(32) DEFAULT NULL COMMENT '身份证号',
     phone VARCHAR(32) DEFAULT NULL COMMENT '手机号',
     department VARCHAR(128) DEFAULT NULL COMMENT '所属部门',
-    status TINYINT DEFAULT 1 COMMENT '状态 1:启用 0:禁用',
+    scan_status TINYINT DEFAULT 1 COMMENT '扫脸便捷性 1:不能扫脸 2:方便扫脸 3:较难扫脸',
     remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id)
@@ -151,7 +150,7 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (100, '首页', '/home', 'HomeFilled', 0, 0, 1, NULL, 1),
 
 -- ========== 系统管理 ==========
-(10, '系统管理', '', 'Setting', 0, 1, 1, '', 1),
+(10, '系统管理', '/system', 'Setting', 0, 1, 1, '', 1),
 (101, '用户管理', '/system/user', 'User', 10, 1, 1, 'system:user:view', 1),
 (102, '角色管理', '/system/role', 'UserFilled', 10, 2, 1, 'system:role:view', 1),
 (103, '菜单管理', '/system/menu', 'Menu', 10, 3, 1, 'system:menu:view', 1),
@@ -170,8 +169,8 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (303, '服务器总览', '/server/overview', 'DataLine', 30, 3, 1, 'server:overview:view', 1),
 
 -- ========== 实名人员管理 ==========
-(40, '实名人员管理', '', 'Avatar', 0, 4, 1, '', 1),
-(401, '实名人员列表', '/realname/list', 'User', 40, 1, 1, 'realname:list:view', 1);
+(40, '实名人员管理', '/realname', 'Avatar', 0, 4, 1, '', 1),
+(401, '实名人员', '/realname/list', 'User', 40, 1, 1, 'realname:list:view', 1);
 
 -- ============================================================
 -- 系统管理按钮权限
@@ -245,7 +244,7 @@ INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, me
 -- 实名人员管理按钮权限
 -- ============================================================
 INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
--- 实名人员列表按钮(parent_id=401)
+-- 实名人员按钮(parent_id=401)
 ('实名人员查询', '', '', 401, 1, 2, 'realname:list:view', 1),
 ('实名人员新增', '', '', 401, 2, 2, 'realname:list:add', 1),
 ('实名人员编辑', '', '', 401, 3, 2, 'realname:list:edit', 1),
