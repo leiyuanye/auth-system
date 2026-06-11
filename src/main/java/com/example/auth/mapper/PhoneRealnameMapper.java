@@ -20,11 +20,11 @@ public interface PhoneRealnameMapper {
 
     List<PhoneRealname> selectByCondition(
             @Param("keyword") String keyword,
-            @Param("status") Integer status,
+            @Param("scanStatus") Integer scanStatus,
             @Param("offset") Integer offset,
             @Param("limit") Integer limit);
 
     int countByCondition(
             @Param("keyword") String keyword,
-            @Param("status") Integer status);
+            @Param("scanStatus") Integer scanStatus);
 }
