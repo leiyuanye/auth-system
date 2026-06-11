@@ -50,10 +50,56 @@
         ORDER BY sort_order ASC
     </select>
 
-    <select id="selectMenuIdsByRoleId" parameterType="java.lang.Long" resultType="java.lang.Long">
-        SELECT menu_id
-        FROM sys_role_menu
-        WHERE role_id = #{roleId}
+    <select id="selectById" resultMap="SysMenuMap">
+        SELECT id,menu_name,menu_path,menu_icon,parent_id,sort_order,menu_type,perm_code,status,create_time
+        FROM sys_menu
+        WHERE id = #{id}
     </select>
+
+    <select id="selectByPath" resultMap="SysMenuMap">
+        SELECT id,menu_name,menu_path,menu_icon,parent_id,sort_order,menu_type,perm_code,status,create_time
+        FROM sys_menu
+        WHERE menu_path = #{path}
+        LIMIT 1
+    </select>
+
+    <select id="selectByCondition" resultMap="SysMenuMap">
+        SELECT id,menu_name,menu_path,menu_icon,parent_id,sort_order,menu_type,perm_code,status,create_time
+        FROM sys_menu
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND menu_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+        ORDER BY sort_order ASC
+    </select>
+
+    <select id="countByParentId" resultType="int">
+        SELECT COUNT(*) FROM sys_menu WHERE parent_id = #{parentId}
+    </select>
+
+    <insert id="insert" parameterType="com.example.auth.entity.SysMenu" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status, create_time)
+        VALUES (#{name}, #{path}, #{icon}, #{parentId}, #{sortOrder}, #{menuType}, #{permCode}, #{status}, NOW())
+    </insert>
+
+    <update id="update" parameterType="com.example.auth.entity.SysMenu">
+        UPDATE sys_menu
+        <set>
+            <if test="name != null">menu_name = #{name},</if>
+            <if test="path != null">menu_path = #{path},</if>
+            <if test="icon != null">menu_icon = #{icon},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="menuType != null">menu_type = #{menuType},</if>
+            <if test="permCode != null">perm_code = #{permCode},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_menu WHERE id = #{id}
+    </delete>
 
 </mapper>

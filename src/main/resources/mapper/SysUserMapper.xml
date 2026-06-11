@@ -14,6 +14,7 @@
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
+    <!-- ============ 查询 ============ -->
     <select id="selectByUsername" resultMap="SysUserMap">
         SELECT id, username, password, real_name, email, phone, status, create_time, update_time
         FROM sys_user
@@ -25,12 +26,85 @@
     <select id="selectAll" resultMap="SysUserMap">
         SELECT id,username,real_name,email,phone,status,create_time
         FROM sys_user
+        ORDER BY id DESC
     </select>
 
     <select id="selectById" resultMap="SysUserMap">
-        SELECT id,username,real_name,email,phone,status
+        SELECT id,username,real_name,email,phone,status,create_time,update_time
         FROM sys_user
         WHERE id=#{id}
     </select>
+
+    <select id="selectByCondition" resultMap="SysUserMap">
+        SELECT id,username,real_name,email,phone,status,create_time,update_time
+        FROM sys_user
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (username LIKE CONCAT('%', #{keyword}, '%') OR real_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM sys_user
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (username LIKE CONCAT('%', #{keyword}, '%') OR real_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- ============ 新增 ============ -->
+    <insert id="insert" parameterType="com.example.auth.entity.SysUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (username, password, real_name, email, phone, status, create_time)
+        VALUES (#{username}, #{password}, #{realName}, #{email}, #{phone}, #{status}, NOW())
+    </insert>
+
+    <!-- ============ 更新 ============ -->
+    <update id="update" parameterType="com.example.auth.entity.SysUser">
+        UPDATE sys_user
+        <set>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE sys_user SET password = #{password}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <!-- ============ 删除 ============ -->
+    <delete id="deleteById">
+        DELETE FROM sys_user WHERE id = #{id}
+    </delete>
+
+    <!-- ============ 用户-角色关联 ============ -->
+    <select id="selectRoleIdsByUserId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT role_id
+        FROM sys_user_role
+        WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteUserRolesByUserId">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserRole">
+        INSERT INTO sys_user_role (user_id, role_id, create_time) VALUES (#{userId}, #{roleId}, NOW())
+    </insert>
 
 </mapper>

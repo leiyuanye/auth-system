@@ -2,6 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.auth.mapper.SysRoleMapper">
 
+    <resultMap id="SysRoleMap" type="com.example.auth.entity.SysRole">
+        <id column="id" property="id"/>
+        <result column="role_code" property="roleCode"/>
+        <result column="role_name" property="roleName"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
     <select id="selectRoleCodesByUserId" resultType="java.lang.String">
         SELECT r.role_code
         FROM sys_user_role ur
@@ -10,15 +19,92 @@
           AND r.status = 1
     </select>
 
-    <select id="selectAll" resultType="com.example.auth.entity.SysRole">
-        SELECT id,role_code,role_name,description,status,create_time
-        FROM sys_role
-    </select>
-
     <select id="selectRoleIdsByUserId" parameterType="java.lang.Long" resultType="java.lang.Long">
         SELECT role_id
         FROM sys_user_role
         WHERE user_id = #{userId}
     </select>
+
+    <select id="selectAll" resultMap="SysRoleMap">
+        SELECT id,role_code,role_name,description,status,create_time
+        FROM sys_role
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectById" resultMap="SysRoleMap">
+        SELECT id,role_code,role_name,description,status,create_time
+        FROM sys_role
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByRoleCode" resultMap="SysRoleMap">
+        SELECT id,role_code,role_name,description,status,create_time
+        FROM sys_role
+        WHERE role_code = #{roleCode}
+        LIMIT 1
+    </select>
+
+    <select id="selectByCondition" resultMap="SysRoleMap">
+        SELECT id,role_code,role_name,description,status,create_time
+        FROM sys_role
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (role_name LIKE CONCAT('%', #{keyword}, '%') OR role_code LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id ASC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM sys_role
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (role_name LIKE CONCAT('%', #{keyword}, '%') OR role_code LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.example.auth.entity.SysRole" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_role (role_code, role_name, description, status, create_time)
+        VALUES (#{roleCode}, #{roleName}, #{description}, #{status}, NOW())
+    </insert>
+
+    <update id="update" parameterType="com.example.auth.entity.SysRole">
+        UPDATE sys_role
+        <set>
+            <if test="roleName != null">role_name = #{roleName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_role WHERE id = #{id}
+    </delete>
+
+    <!-- ============ 角色-菜单关联 ============ -->
+    <select id="selectMenuIdsByRoleId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT menu_id
+        FROM sys_role_menu
+        WHERE role_id = #{roleId}
+    </select>
+
+    <delete id="deleteRoleMenusByRoleId">
+        DELETE FROM sys_role_menu WHERE role_id = #{roleId}
+    </delete>
+
+    <insert id="insertRoleMenu">
+        INSERT INTO sys_role_menu (role_id, menu_id, create_time) VALUES (#{roleId}, #{menuId}, NOW())
+    </insert>
 
 </mapper>
