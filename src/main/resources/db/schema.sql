@@ -4,8 +4,9 @@
 -- 菜单结构:
 --   - 首页
 --   - 系统管理（用户管理/角色管理/菜单管理）
---   - 手机卡管理（在用手机卡/备用手机卡/数据总览）
+--   - 手机卡管理（在用手机卡/备用手机卡/数据总览、代理商管理）
 --   - 服务器管理（在用服务器/备用服务器/服务器总览）
+--   - 实名人员管理（实名人员列表）
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS auth_system DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -88,6 +89,38 @@ CREATE TABLE sys_role_menu (
     UNIQUE KEY uk_role_menu (role_id, menu_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-菜单(权限)关联表';
 
+-- ------------------------------------------------------------
+-- 代理商表
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS phone_agent;
+CREATE TABLE phone_agent (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '代理商ID',
+    agent_name VARCHAR(128) NOT NULL COMMENT '代理商名称',
+    contact VARCHAR(64) DEFAULT NULL COMMENT '联系人',
+    phone VARCHAR(32) DEFAULT NULL COMMENT '联系电话',
+    address VARCHAR(255) DEFAULT NULL COMMENT '地址',
+    status TINYINT DEFAULT 1 COMMENT '状态 1:启用 0:禁用',
+    remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='代理商表';
+
+-- ------------------------------------------------------------
+-- 实名人员表
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS phone_realname;
+CREATE TABLE phone_realname (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '实名人员ID',
+    real_name VARCHAR(64) NOT NULL COMMENT '真实姓名',
+    id_card VARCHAR(32) DEFAULT NULL COMMENT '身份证号',
+    phone VARCHAR(32) DEFAULT NULL COMMENT '手机号',
+    department VARCHAR(128) DEFAULT NULL COMMENT '所属部门',
+    status TINYINT DEFAULT 1 COMMENT '状态 1:启用 0:禁用',
+    remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='实名人员表';
+
 -- ============================================================
 -- 初始化数据
 -- ============================================================
@@ -128,12 +161,17 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (201, '在用手机卡', '/phone/active', 'Connection', 20, 1, 1, 'phone:active:view', 1),
 (202, '备用手机卡', '/phone/backup', 'Tickets', 20, 2, 1, 'phone:backup:view', 1),
 (203, '数据总览', '/phone/overview', 'DataAnalysis', 20, 3, 1, 'phone:overview:view', 1),
+(204, '代理商管理', '/phone/agent', 'UserFilled', 20, 4, 1, 'phone:agent:view', 1),
 
 -- ========== 服务器管理 ==========
 (30, '服务器管理', '/server', 'Monitor', 0, 3, 1, '', 1),
 (301, '在用服务器', '/server/active', 'Cpu', 30, 1, 1, 'server:active:view', 1),
 (302, '备用服务器', '/server/backup', 'Box', 30, 2, 1, 'server:backup:view', 1),
-(303, '服务器总览', '/server/overview', 'DataLine', 30, 3, 1, 'server:overview:view', 1);
+(303, '服务器总览', '/server/overview', 'DataLine', 30, 3, 1, 'server:overview:view', 1),
+
+-- ========== 实名人员管理 ==========
+(40, '实名人员管理', '', 'Avatar', 0, 4, 1, '', 1),
+(401, '实名人员列表', '/realname/list', 'User', 40, 1, 1, 'realname:list:view', 1);
 
 -- ============================================================
 -- 系统管理按钮权限
@@ -173,6 +211,12 @@ INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, me
 ('备用卡编辑', '', '', 202, 3, 2, 'phone:backup:edit', 1),
 ('备用卡删除', '', '', 202, 4, 2, 'phone:backup:delete', 1),
 
+-- 代理商管理按钮(parent_id=204)
+('代理商查询', '', '', 204, 1, 2, 'phone:agent:view', 1),
+('代理商新增', '', '', 204, 2, 2, 'phone:agent:add', 1),
+('代理商编辑', '', '', 204, 3, 2, 'phone:agent:edit', 1),
+('代理商删除', '', '', 204, 4, 2, 'phone:agent:delete', 1),
+
 -- 数据总览按钮(parent_id=203)
 ('数据总览查询', '', '', 203, 1, 2, 'phone:overview:view', 1),
 ('数据总览导出', '', '', 203, 2, 2, 'phone:overview:export', 1);
@@ -198,6 +242,16 @@ INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, me
 ('服务器总览导出', '', '', 303, 2, 2, 'server:overview:export', 1);
 
 -- ============================================================
+-- 实名人员管理按钮权限
+-- ============================================================
+INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+-- 实名人员列表按钮(parent_id=401)
+('实名人员查询', '', '', 401, 1, 2, 'realname:list:view', 1),
+('实名人员新增', '', '', 401, 2, 2, 'realname:list:add', 1),
+('实名人员编辑', '', '', 401, 3, 2, 'realname:list:edit', 1),
+('实名人员删除', '', '', 401, 4, 2, 'realname:list:delete', 1);
+
+-- ============================================================
 -- 角色-菜单关联
 -- ============================================================
 
@@ -216,10 +270,13 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (2, 201), (2, 201+1), (2, 201+2), (2, 201+3),  -- 在用手机卡(含按钮)
 (2, 202), (2, 202+1), (2, 202+2), (2, 202+3),  -- 备用手机卡(含按钮)
 (2, 203), (2, 203+1), (2, 203+2),               -- 数据总览(含按钮)
+(2, 204), (2, 204+1), (2, 204+2), (2, 204+3),  -- 代理商管理(含按钮)
 (2, 30),   -- 服务器管理
 (2, 301), (2, 301+1), (2, 301+2), (2, 301+3), -- 在用服务器(含按钮)
 (2, 302), (2, 302+1), (2, 302+2), (2, 302+3), -- 备用服务器(含按钮)
-(2, 303), (2, 303+1), (2, 303+2);              -- 服务器总览(含按钮)
+(2, 303), (2, 303+1), (2, 303+2),              -- 服务器总览(含按钮)
+(2, 40),   -- 实名人员管理
+(2, 401), (2, 401+1), (2, 401+2), (2, 401+3); -- 实名人员列表(含按钮)
 
 -- 查看员: 首页 + 系统管理(仅查看) + 手机卡管理(仅查看) + 服务器管理(仅查看)
 INSERT INTO sys_role_menu (role_id, menu_id) VALUES
@@ -232,10 +289,13 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 201),  -- 在用手机卡(仅查看)
 (3, 202),  -- 备用手机卡(仅查看)
 (3, 203),  -- 数据总览(仅查看)
+(3, 204),  -- 代理商管理(仅查看)
 (3, 30),   -- 服务器管理
 (3, 301),  -- 在用服务器(仅查看)
 (3, 302),  -- 备用服务器(仅查看)
-(3, 303);  -- 服务器总览(仅查看)
+(3, 303),  -- 服务器总览(仅查看)
+(3, 40),   -- 实名人员管理(仅查看)
+(3, 401);  -- 实名人员列表(仅查看)
 
 -- ============================================================
 -- 默认账号
