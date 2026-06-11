@@ -1,10 +1,12 @@
 package com.example.auth.mapper;
 
 import com.example.auth.entity.SysOperateLog;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface SysOperateLogMapper {
     List<SysOperateLog> selectAll();
     SysOperateLog selectById(@Param("id") Long id);

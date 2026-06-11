@@ -41,8 +41,8 @@
     </select>
 
     <insert id="insert" parameterType="com.example.auth.entity.SysOperateLog" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_operate_log (module_name, operate_type, data_id, data_name, field_changed, old_value, new_value, operator, remark)
-        VALUES (#{moduleName}, #{operateType}, #{dataId}, #{dataName}, #{fieldChanged}, #{oldValue}, #{newValue}, #{operator}, #{remark})
+        INSERT INTO sys_operate_log (module_name, operate_type, data_id, data_name, field_changed, old_value, new_value, operator, operate_time, remark)
+        VALUES (#{moduleName}, #{operateType}, #{dataId}, #{dataName}, #{fieldChanged}, #{oldValue}, #{newValue}, #{operator}, #{operateTime}, #{remark})
     </insert>
 
     <select id="selectByCondition" resultMap="SysOperateLogMap">

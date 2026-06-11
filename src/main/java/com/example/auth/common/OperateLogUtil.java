@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,6 +72,7 @@ public class OperateLogUtil {
         log.setDataId(dataId);
         log.setDataName(safeName(dataName));
         log.setOperator(safeName(operator));
+        log.setOperateTime(new Date());
         return log;
     }
 
@@ -78,13 +80,16 @@ public class OperateLogUtil {
         try {
             logMapper.insert(log);
         } catch (Exception e) {
-            // 日志记录失败不应影响主流程
+            // 日志记录失败不应影响主流程，但需要明确报错信息
             System.err.println("[OperateLog] 写入日志失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     private <T> String buildFieldDiff(T oldObj, T newObj) {
-        if (oldObj == null || newObj == null) return "id,";
+        if (oldObj == null && newObj == null) return "-";
+        if (oldObj == null) return "(原数据为空)";
+        if (newObj == null) return "(新数据为空)";
         List<String> diff = new ArrayList<>();
         try {
             for (Field f : getAllFields(oldObj.getClass())) {
@@ -97,7 +102,9 @@ public class OperateLogUtil {
                     diff.add(name + "(\"" + truncate(strValue(v1), 40) + "\"→\"" + truncate(strValue(v2), 40) + "\")");
                 }
             }
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            System.err.println("[OperateLog] 字段对比异常: " + e.getMessage());
+            return "(字段解析失败)";
         }
         return diff.isEmpty() ? "-" : String.join("、", diff);
     }
