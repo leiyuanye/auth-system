@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
 import com.example.auth.entity.SysUser;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -21,10 +23,16 @@ public class SysUserController {
     @Autowired
     private SysUserMapper userMapper;
 
-    /**
-     * 分页查询用户列表
-     * GET /api/sys/users?keyword=&status=&page=1&size=10
-     */
+    @Autowired
+    private OperateLogUtil logUtil;
+
+    private static final String MODULE_NAME = "用户管理";
+
+    private String currentUser(HttpServletRequest request) {
+        Object u = request.getAttribute("username");
+        return u == null ? "" : u.toString();
+    }
+
     @GetMapping
     public Result<PageResult<SysUser>> list(
             @RequestParam(required = false) String keyword,
@@ -34,16 +42,12 @@ public class SysUserController {
         int offset = (page - 1) * size;
         List<SysUser> list = userMapper.selectByCondition(keyword, status, offset, size);
         int total = userMapper.countByCondition(keyword, status);
-        // 清掉密码字段
         for (SysUser u : list) {
             u.setPassword(null);
         }
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
-    /**
-     * 查询单个用户详情
-     */
     @GetMapping("/{id}")
     public Result<SysUser> getById(@PathVariable Long id) {
         SysUser user = userMapper.selectById(id);
@@ -53,90 +57,83 @@ public class SysUserController {
         return Result.ok(user);
     }
 
-    /**
-     * 新增用户
-     */
     @PostMapping
-    public Result<Map<String, Object>> add(@RequestBody SysUser user) {
-        // 校验用户名是否存在
+    public Result<Map<String, Object>> add(@RequestBody SysUser user, HttpServletRequest request) {
         SysUser exist = userMapper.selectByUsername(user.getUsername());
         if (exist != null) {
             return Result.fail("用户名已存在");
         }
-        // 默认密码：若密码为空则使用 admin123
         String rawPassword = (user.getPassword() == null || user.getPassword().isEmpty())
                 ? "admin123" : user.getPassword();
         user.setPassword(DigestUtils.md5DigestAsHex(rawPassword.getBytes(StandardCharsets.UTF_8)));
         if (user.getStatus() == null) user.setStatus(1);
 
         int rows = userMapper.insert(user);
+        SysUser logged = userMapper.selectById(user.getId());
+        if (logged != null) logged.setPassword(null);
+        logUtil.logAdd(MODULE_NAME, user.getId(), user.getUsername(), logged, currentUser(request));
         Map<String, Object> data = new HashMap<>();
         data.put("id", user.getId());
         return Result.ok(data);
     }
 
-    /**
-     * 更新用户（不含密码）
-     */
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody SysUser user) {
+    public Result<Void> update(@PathVariable Long id, @RequestBody SysUser user, HttpServletRequest request) {
+        SysUser oldUser = userMapper.selectById(id);
+        if (oldUser != null) oldUser.setPassword(null);
         user.setId(id);
-        // 清掉密码（防止误用此接口改密码）
         user.setPassword(null);
         int rows = userMapper.update(user);
+        SysUser newUser = userMapper.selectById(id);
+        if (newUser != null) newUser.setPassword(null);
+        logUtil.logUpdate(MODULE_NAME, id, user.getUsername() != null ? user.getUsername() : (oldUser != null ? oldUser.getUsername() : null), oldUser, newUser, currentUser(request));
         return Result.ok(null);
     }
 
-    /**
-     * 重置密码
-     */
     @PutMapping("/{id}/password")
-    public Result<Void> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public Result<Void> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> body, HttpServletRequest request) {
         String newPassword = body.get("password");
         if (newPassword == null || newPassword.isEmpty()) {
             newPassword = "admin123";
         }
         String md5Password = DigestUtils.md5DigestAsHex(newPassword.getBytes(StandardCharsets.UTF_8));
         userMapper.updatePassword(id, md5Password);
+        SysUser updated = userMapper.selectById(id);
+        logUtil.logUpdate(MODULE_NAME, id, updated != null ? updated.getUsername() : String.valueOf(id),
+                "原密码(已加密)", "新密码(已重置)", currentUser(request),
+                "密码重置为 " + newPassword);
         return Result.ok(null);
     }
 
-    /**
-     * 删除用户
-     */
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        // 先删除用户-角色关联，再删除用户
+    public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
+        SysUser oldUser = userMapper.selectById(id);
+        if (oldUser != null) oldUser.setPassword(null);
         userMapper.deleteUserRolesByUserId(id);
         int rows = userMapper.deleteById(id);
+        logUtil.logDelete(MODULE_NAME, id, oldUser != null ? oldUser.getUsername() : String.valueOf(id), oldUser, currentUser(request));
         return Result.ok(null);
     }
 
-    // ============== 用户-角色分配 ==============
-
-    /**
-     * 获取用户已分配的角色ID列表
-     */
     @GetMapping("/{userId}/roles")
     public Result<List<Long>> getUserRoleIds(@PathVariable Long userId) {
         List<Long> roleIds = userMapper.selectRoleIdsByUserId(userId);
         return Result.ok(roleIds);
     }
 
-    /**
-     * 给用户分配角色
-     * body: { roleIds: [1,2,3] }
-     */
     @PostMapping("/{userId}/roles")
-    public Result<Void> assignRoles(@PathVariable Long userId, @RequestBody Map<String, Object> body) {
+    public Result<Void> assignRoles(@PathVariable Long userId, @RequestBody Map<String, Object> body, HttpServletRequest request) {
         List<Integer> roleIdsInt = (List<Integer>) body.get("roleIds");
-        // 先删后插
+        SysUser oldUser = userMapper.selectById(userId);
         userMapper.deleteUserRolesByUserId(userId);
         if (roleIdsInt != null) {
             for (Integer rid : roleIdsInt) {
                 userMapper.insertUserRole(userId, rid.longValue());
             }
         }
+        logUtil.logUpdate(MODULE_NAME, userId, oldUser != null ? oldUser.getUsername() : String.valueOf(userId),
+                "角色变更", roleIdsInt == null ? "空" : roleIdsInt.toString(), currentUser(request),
+                "角色分配为: " + roleIdsInt);
         return Result.ok(null);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
 import com.example.auth.entity.PhoneRealname;
@@ -7,6 +8,7 @@ import com.example.auth.mapper.PhoneRealnameMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +21,16 @@ public class PhoneRealnameController {
     @Autowired
     private PhoneRealnameMapper realnameMapper;
 
-    /**
-     * 分页查询实名人员列表
-     * GET /api/phone/realnames?keyword=&scanStatus=&page=1&size=10
-     */
+    @Autowired
+    private OperateLogUtil logUtil;
+
+    private static final String MODULE_NAME = "实名人员管理";
+
+    private String currentUser(HttpServletRequest request) {
+        Object u = request.getAttribute("username");
+        return u == null ? "" : u.toString();
+    }
+
     @GetMapping
     public Result<PageResult<PhoneRealname>> list(
             @RequestParam(required = false) String keyword,
@@ -35,20 +43,14 @@ public class PhoneRealnameController {
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
-    /**
-     * 查询单个实名人员详情
-     */
     @GetMapping("/{id}")
     public Result<PhoneRealname> getById(@PathVariable Long id) {
         PhoneRealname realname = realnameMapper.selectById(id);
         return Result.ok(realname);
     }
 
-    /**
-     * 新增实名人员
-     */
     @PostMapping
-    public Result<Map<String, Object>> add(@RequestBody PhoneRealname realname) {
+    public Result<Map<String, Object>> add(@RequestBody PhoneRealname realname, HttpServletRequest request) {
         if (realname.getRealName() == null || realname.getRealName().trim().isEmpty()) {
             return Result.fail("真实姓名不能为空");
         }
@@ -56,27 +58,27 @@ public class PhoneRealnameController {
             realname.setScanStatus(1);
         }
         realnameMapper.insert(realname);
+        logUtil.logAdd(MODULE_NAME, realname.getId(), realname.getRealName(), realname, currentUser(request));
         Map<String, Object> data = new HashMap<>();
         data.put("id", realname.getId());
         return Result.ok(data);
     }
 
-    /**
-     * 更新实名人员
-     */
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody PhoneRealname realname) {
+    public Result<Void> update(@PathVariable Long id, @RequestBody PhoneRealname realname, HttpServletRequest request) {
+        PhoneRealname old = realnameMapper.selectById(id);
         realname.setId(id);
         realnameMapper.update(realname);
+        PhoneRealname newOne = realnameMapper.selectById(id);
+        logUtil.logUpdate(MODULE_NAME, id, realname.getRealName() != null ? realname.getRealName() : (old != null ? old.getRealName() : null), old, newOne, currentUser(request));
         return Result.ok(null);
     }
 
-    /**
-     * 删除实名人员
-     */
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
+        PhoneRealname old = realnameMapper.selectById(id);
         realnameMapper.deleteById(id);
+        logUtil.logDelete(MODULE_NAME, id, old != null ? old.getRealName() : String.valueOf(id), old, currentUser(request));
         return Result.ok(null);
     }
 }

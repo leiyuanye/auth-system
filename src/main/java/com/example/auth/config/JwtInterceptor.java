@@ -38,6 +38,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (userId instanceof Number) {
             request.setAttribute("userId", ((Number) userId).longValue());
         }
+        Object username = claims.get("username");
+        if (username instanceof String) {
+            request.setAttribute("username", username);
+        }
         return true;
     }
 

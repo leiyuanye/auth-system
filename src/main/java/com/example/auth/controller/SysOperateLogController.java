@@ -5,9 +5,13 @@ import com.example.auth.common.Result;
 import com.example.auth.entity.SysOperateLog;
 import com.example.auth.mapper.SysOperateLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/system/logs")
@@ -17,6 +21,19 @@ public class SysOperateLogController {
     @Autowired
     private SysOperateLogMapper logMapper;
 
+    /**
+     * 将前端逗号分隔的多值参数（如 "手机卡管理,用户管理"）转为列表
+     */
+    private List<String> splitMulti(String raw) {
+        if (raw == null) return null;
+        String s = raw.trim();
+        if (s.isEmpty()) return null;
+        return Arrays.stream(s.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toList());
+    }
+
     @GetMapping
     public Result<PageResult<SysOperateLog>> list(
             @RequestParam(required = false) String moduleName,
@@ -24,9 +41,25 @@ public class SysOperateLogController {
             @RequestParam(required = false) String operator,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        int offset = (page - 1) * size;
-        List<SysOperateLog> list = logMapper.selectByCondition(moduleName, operateType, operator, offset, size);
-        int total = logMapper.countByCondition(moduleName, operateType, operator);
+
+        List<String> moduleNames = splitMulti(moduleName);
+        List<String> operateTypes = splitMulti(operateType);
+
+        int offset = Math.max(0, (page - 1) * size);
+        List<SysOperateLog> list = logMapper.selectByCondition(
+                moduleNames != null && !moduleNames.isEmpty() ? moduleNames : Collections.emptyList(),
+                moduleNames != null && !moduleNames.isEmpty() ? 1 : 0,
+                operateTypes != null && !operateTypes.isEmpty() ? operateTypes : Collections.emptyList(),
+                operateTypes != null && !operateTypes.isEmpty() ? 1 : 0,
+                operator,
+                offset,
+                size);
+        int total = logMapper.countByCondition(
+                moduleNames != null && !moduleNames.isEmpty() ? moduleNames : Collections.emptyList(),
+                moduleNames != null && !moduleNames.isEmpty() ? 1 : 0,
+                operateTypes != null && !operateTypes.isEmpty() ? operateTypes : Collections.emptyList(),
+                operateTypes != null && !operateTypes.isEmpty() ? 1 : 0,
+                operator);
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
@@ -40,5 +73,10 @@ public class SysOperateLogController {
         }
         logMapper.insert(log);
         return Result.ok(log);
+    }
+
+    @GetMapping("/modules")
+    public Result<List<String>> listModules() {
+        return Result.ok(logMapper.selectDistinctModules());
     }
 }

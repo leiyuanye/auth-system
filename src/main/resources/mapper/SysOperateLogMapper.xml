@@ -16,6 +16,22 @@
         <result column="remark" property="remark"/>
     </resultMap>
 
+    <sql id="whereClause">
+        <where>
+            <if test="useModuleFlag != null and useModuleFlag == 1 and moduleNames != null and moduleNames.size > 0">
+                AND module_name IN
+                <foreach collection="moduleNames" item="m" open="(" separator="," close=")">#{m}</foreach>
+            </if>
+            <if test="useTypeFlag != null and useTypeFlag == 1 and operateTypes != null and operateTypes.size > 0">
+                AND operate_type IN
+                <foreach collection="operateTypes" item="t" open="(" separator="," close=")">#{t}</foreach>
+            </if>
+            <if test="operator != null and operator != ''">
+                AND operator LIKE CONCAT('%', #{operator}, '%')
+            </if>
+        </where>
+    </sql>
+
     <select id="selectAll" resultMap="SysOperateLogMap">
         SELECT * FROM sys_operate_log ORDER BY operate_time DESC
     </select>
@@ -31,21 +47,19 @@
 
     <select id="selectByCondition" resultMap="SysOperateLogMap">
         SELECT * FROM sys_operate_log
-        <where>
-            <if test="moduleName != null and moduleName != ''">AND module_name = #{moduleName}</if>
-            <if test="operateType != null and operateType != ''">AND operate_type = #{operateType}</if>
-            <if test="operator != null and operator != ''">AND operator LIKE CONCAT('%', #{operator}, '%')</if>
-        </where>
+        <include refid="whereClause"/>
         ORDER BY operate_time DESC
         <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
     </select>
 
     <select id="countByCondition" resultType="int">
         SELECT COUNT(*) FROM sys_operate_log
-        <where>
-            <if test="moduleName != null and moduleName != ''">AND module_name = #{moduleName}</if>
-            <if test="operateType != null and operateType != ''">AND operate_type = #{operateType}</if>
-            <if test="operator != null and operator != ''">AND operator LIKE CONCAT('%', #{operator}, '%')</if>
-        </where>
+        <include refid="whereClause"/>
+    </select>
+
+    <select id="selectDistinctModules" resultType="string">
+        SELECT DISTINCT module_name FROM sys_operate_log
+        WHERE module_name IS NOT NULL AND module_name != ''
+        ORDER BY module_name
     </select>
 </mapper>

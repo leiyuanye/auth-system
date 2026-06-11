@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
 import com.example.auth.entity.SysRole;
@@ -7,6 +8,7 @@ import com.example.auth.mapper.SysRoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,17 +21,21 @@ public class SysRoleController {
     @Autowired
     private SysRoleMapper roleMapper;
 
-    /**
-     * 查询所有角色（不分页，用于下拉选择）
-     */
+    @Autowired
+    private OperateLogUtil logUtil;
+
+    private static final String MODULE_NAME = "角色管理";
+
+    private String currentUser(HttpServletRequest request) {
+        Object u = request.getAttribute("username");
+        return u == null ? "" : u.toString();
+    }
+
     @GetMapping("/all")
     public Result<List<SysRole>> all() {
         return Result.ok(roleMapper.selectAll());
     }
 
-    /**
-     * 分页查询角色列表
-     */
     @GetMapping
     public Result<PageResult<SysRole>> list(
             @RequestParam(required = false) String keyword,
@@ -48,59 +54,58 @@ public class SysRoleController {
     }
 
     @PostMapping
-    public Result<Map<String, Object>> add(@RequestBody SysRole role) {
-        // 校验 roleCode 是否重复
+    public Result<Map<String, Object>> add(@RequestBody SysRole role, HttpServletRequest request) {
         SysRole exist = roleMapper.selectByRoleCode(role.getRoleCode());
         if (exist != null) {
             return Result.fail("角色编码已存在");
         }
         if (role.getStatus() == null) role.setStatus(1);
         roleMapper.insert(role);
+        logUtil.logAdd(MODULE_NAME, role.getId(), role.getRoleName(), role, currentUser(request));
         Map<String, Object> data = new HashMap<>();
         data.put("id", role.getId());
         return Result.ok(data);
     }
 
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody SysRole role) {
+    public Result<Void> update(@PathVariable Long id, @RequestBody SysRole role, HttpServletRequest request) {
+        SysRole oldRole = roleMapper.selectById(id);
         role.setId(id);
         roleMapper.update(role);
+        SysRole newRole = roleMapper.selectById(id);
+        logUtil.logUpdate(MODULE_NAME, id, role.getRoleName() != null ? role.getRoleName() : (oldRole != null ? oldRole.getRoleName() : null), oldRole, newRole, currentUser(request));
         return Result.ok(null);
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        // 先删除角色-菜单关联
+    public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
+        SysRole oldRole = roleMapper.selectById(id);
         roleMapper.deleteRoleMenusByRoleId(id);
         roleMapper.deleteById(id);
+        logUtil.logDelete(MODULE_NAME, id, oldRole != null ? oldRole.getRoleName() : String.valueOf(id), oldRole, currentUser(request));
         return Result.ok(null);
     }
 
-    // ============== 角色-菜单分配 ==============
-
-    /**
-     * 获取角色已分配的菜单ID列表
-     */
     @GetMapping("/{roleId}/menus")
     public Result<List<Long>> getRoleMenuIds(@PathVariable Long roleId) {
         List<Long> menuIds = roleMapper.selectMenuIdsByRoleId(roleId);
         return Result.ok(menuIds);
     }
 
-    /**
-     * 给角色分配菜单（权限）
-     * body: { menuIds: [1,2,3] }
-     */
     @PostMapping("/{roleId}/menus")
-    public Result<Void> assignMenus(@PathVariable Long roleId, @RequestBody Map<String, Object> body) {
+    public Result<Void> assignMenus(@PathVariable Long roleId, @RequestBody Map<String, Object> body, HttpServletRequest request) {
         List<Integer> menuIdsInt = (List<Integer>) body.get("menuIds");
-        // 先删后插
+        SysRole role = roleMapper.selectById(roleId);
+        String roleName = role != null ? role.getRoleName() : String.valueOf(roleId);
         roleMapper.deleteRoleMenusByRoleId(roleId);
         if (menuIdsInt != null) {
             for (Integer mid : menuIdsInt) {
                 roleMapper.insertRoleMenu(roleId, mid.longValue());
             }
         }
+        logUtil.logUpdate(MODULE_NAME, roleId, roleName,
+                "菜单权限变更", menuIdsInt == null ? "空" : menuIdsInt.toString(),
+                currentUser(request), "角色菜单权限重新分配为: " + menuIdsInt);
         return Result.ok(null);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.Result;
 import com.example.auth.entity.SysMenu;
 import com.example.auth.mapper.SysMenuMapper;
@@ -21,18 +22,22 @@ public class SysMenuController {
     @Autowired
     private SysRoleMapper roleMapper;
 
-    /**
-     * 查询所有菜单（带条件筛选，返回平铺列表）
-     */
+    @Autowired
+    private OperateLogUtil logUtil;
+
+    private static final String MODULE_NAME = "菜单管理";
+
+    private String currentUser(HttpServletRequest request) {
+        Object u = request.getAttribute("username");
+        return u == null ? "" : u.toString();
+    }
+
     @GetMapping
     public Result<List<SysMenu>> list(@RequestParam(required = false) String keyword) {
         List<SysMenu> list = menuMapper.selectByCondition(keyword);
         return Result.ok(list);
     }
 
-    /**
-     * 获取菜单树（用于左侧导航）
-     */
     @GetMapping("/tree")
     public Result<List<SysMenu>> tree() {
         List<SysMenu> all = menuMapper.selectAllMenus();
@@ -63,16 +68,15 @@ public class SysMenuController {
 
         menuMapper.insert(menu);
 
-        // ========== 自动分配给当前用户所属角色 ==========
         Long userId = (Long) request.getAttribute("userId");
         if (userId != null) {
-            // 查出用户的所有角色ID
             List<Long> roleIds = roleMapper.selectRoleIdsByUserId(userId);
-            // 将新菜单分配给这些角色
             for (Long roleId : roleIds) {
                 roleMapper.insertRoleMenu(roleId, menu.getId());
             }
         }
+
+        logUtil.logAdd(MODULE_NAME, menu.getId(), menu.getName(), menu, currentUser(request));
 
         Map<String, Object> data = new HashMap<>();
         data.put("id", menu.getId());
@@ -80,26 +84,27 @@ public class SysMenuController {
     }
 
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody SysMenu menu) {
+    public Result<Void> update(@PathVariable Long id, @RequestBody SysMenu menu, HttpServletRequest request) {
+        SysMenu oldMenu = menuMapper.selectById(id);
         menu.setId(id);
         menuMapper.update(menu);
+        SysMenu newMenu = menuMapper.selectById(id);
+        logUtil.logUpdate(MODULE_NAME, id, menu.getName() != null ? menu.getName() : (oldMenu != null ? oldMenu.getName() : null), oldMenu, newMenu, currentUser(request));
         return Result.ok(null);
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        // 检查是否有子菜单
+    public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
         int childCount = menuMapper.countByParentId(id);
         if (childCount > 0) {
             return Result.fail("请先删除子菜单");
         }
+        SysMenu oldMenu = menuMapper.selectById(id);
         menuMapper.deleteById(id);
+        logUtil.logDelete(MODULE_NAME, id, oldMenu != null ? oldMenu.getName() : String.valueOf(id), oldMenu, currentUser(request));
         return Result.ok(null);
     }
 
-    /**
-     * 构建菜单树
-     */
     private List<SysMenu> buildTree(List<SysMenu> menus, Long parentId) {
         List<SysMenu> result = new ArrayList<>();
         for (SysMenu menu : menus) {
@@ -109,7 +114,6 @@ public class SysMenuController {
                 result.add(menu);
             }
         }
-        // 按 sortOrder 排序
         result.sort((a, b) -> {
             int sa = a.getSortOrder() == null ? 0 : a.getSortOrder();
             int sb = b.getSortOrder() == null ? 0 : b.getSortOrder();
