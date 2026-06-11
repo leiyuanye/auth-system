@@ -3,9 +3,11 @@ package com.example.auth.controller;
 import com.example.auth.common.Result;
 import com.example.auth.entity.SysMenu;
 import com.example.auth.mapper.SysMenuMapper;
+import com.example.auth.mapper.SysRoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @RestController
@@ -15,6 +17,9 @@ public class SysMenuController {
 
     @Autowired
     private SysMenuMapper menuMapper;
+
+    @Autowired
+    private SysRoleMapper roleMapper;
 
     /**
      * 查询所有菜单（带条件筛选，返回平铺列表）
@@ -41,11 +46,34 @@ public class SysMenuController {
     }
 
     @PostMapping
-    public Result<Map<String, Object>> add(@RequestBody SysMenu menu) {
-        if (menu.getParentId() == null) menu.setParentId(0L);
-        if (menu.getSortOrder() == null) menu.setSortOrder(0);
-        if (menu.getStatus() == null) menu.setStatus(1);
+    public Result<Map<String, Object>> add(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        SysMenu menu = new SysMenu();
+        menu.setName((String) body.get("name"));
+        menu.setPath((String) body.get("path"));
+        menu.setIcon((String) body.get("icon"));
+        Object parentId = body.get("parentId");
+        menu.setParentId(parentId == null ? 0L : ((Number) parentId).longValue());
+        Object sortOrder = body.get("sortOrder");
+        menu.setSortOrder(sortOrder == null ? 0 : ((Number) sortOrder).intValue());
+        Object menuType = body.get("menuType");
+        menu.setMenuType(menuType == null ? 1 : ((Number) menuType).intValue());
+        menu.setPermCode((String) body.get("permCode"));
+        Object status = body.get("status");
+        menu.setStatus(status == null ? 1 : ((Number) status).intValue());
+
         menuMapper.insert(menu);
+
+        // ========== 自动分配给当前用户所属角色 ==========
+        Long userId = (Long) request.getAttribute("userId");
+        if (userId != null) {
+            // 查出用户的所有角色ID
+            List<Long> roleIds = roleMapper.selectRoleIdsByUserId(userId);
+            // 将新菜单分配给这些角色
+            for (Long roleId : roleIds) {
+                roleMapper.insertRoleMenu(roleId, menu.getId());
+            }
+        }
+
         Map<String, Object> data = new HashMap<>();
         data.put("id", menu.getId());
         return Result.ok(data);
