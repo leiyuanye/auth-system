@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.auth.mapper.PhoneCardMapper">
+
+    <resultMap id="PhoneCardMap" type="com.example.auth.entity.PhoneCard">
+        <id column="id" property="id"/>
+        <result column="card_number" property="cardNumber"/>
+        <result column="agent_id" property="agentId"/>
+        <result column="agent_name" property="agentName"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="realname_id" property="realnameId"/>
+        <result column="realname_name" property="realnameName"/>
+        <result column="department" property="department"/>
+        <result column="package" property="package_"/>
+        <result column="card_status" property="cardStatus"/>
+        <result column="card_type" property="cardType"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="PhoneCardMap">
+        SELECT id, card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
+               department, package, card_status, card_type, remark, create_time, update_time
+        FROM phone_card
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectById" resultMap="PhoneCardMap">
+        SELECT id, card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
+               department, package, card_status, card_type, remark, create_time, update_time
+        FROM phone_card
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="PhoneCardMap">
+        SELECT id, card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
+               department, package, card_status, card_type, remark, create_time, update_time
+        FROM phone_card
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (card_number LIKE CONCAT('%', #{keyword}, '%')
+                    OR agent_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR realname_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="cardType != null">
+                AND card_type = #{cardType}
+            </if>
+            <if test="cardStatus != null">
+                AND card_status = #{cardStatus}
+            </if>
+        </where>
+        ORDER BY id DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM phone_card
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (card_number LIKE CONCAT('%', #{keyword}, '%')
+                    OR agent_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR realname_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="cardType != null">
+                AND card_type = #{cardType}
+            </if>
+            <if test="cardStatus != null">
+                AND card_status = #{cardStatus}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.example.auth.entity.PhoneCard" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
+                                department, package, card_status, card_type, remark, create_time, update_time)
+        VALUES (#{cardNumber}, #{agentId}, #{agentName}, #{phoneNumber}, #{realnameId}, #{realnameName},
+                #{department}, #{package_}, #{cardStatus}, #{cardType}, #{remark}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.example.auth.entity.PhoneCard">
+        UPDATE phone_card
+        <set>
+            <if test="cardNumber != null">card_number = #{cardNumber},</if>
+            <if test="agentId != null">agent_id = #{agentId},</if>
+            <if test="agentName != null">agent_name = #{agentName},</if>
+            <if test="phoneNumber != null">phone_number = #{phoneNumber},</if>
+            <if test="realnameId != null">realname_id = #{realnameId},</if>
+            <if test="realnameName != null">realname_name = #{realnameName},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="package_ != null">package = #{package_},</if>
+            <if test="cardStatus != null">card_status = #{cardStatus},</if>
+            <if test="cardType != null">card_type = #{cardType},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM phone_card WHERE id = #{id}
+    </delete>
+
+</mapper>

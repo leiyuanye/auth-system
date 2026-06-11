@@ -120,6 +120,31 @@ CREATE TABLE phone_realname (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='实名人员表';
 
+-- ------------------------------------------------------------
+-- 手机卡表（在用/备用统一管理）
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS phone_card;
+CREATE TABLE phone_card (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '手机卡ID',
+    card_number VARCHAR(64) NOT NULL COMMENT '卡号',
+    agent_id BIGINT DEFAULT NULL COMMENT '代理商ID(关联phone_agent.id)',
+    agent_name VARCHAR(128) DEFAULT NULL COMMENT '代理商名称(冗余)',
+    phone_number VARCHAR(32) DEFAULT NULL COMMENT '手机号',
+    realname_id BIGINT DEFAULT NULL COMMENT '实名人ID(关联phone_realname.id)',
+    realname_name VARCHAR(64) DEFAULT NULL COMMENT '实名人姓名(冗余)',
+    department VARCHAR(128) DEFAULT NULL COMMENT '所属部门',
+    package VARCHAR(128) DEFAULT NULL COMMENT '套餐',
+    card_status TINYINT DEFAULT 1 COMMENT '卡状态 1:正常 2:二次实名 3:欠费',
+    card_type TINYINT DEFAULT 1 COMMENT '卡类型 1:在用 2:备用',
+    remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_card_number (card_number),
+    KEY idx_agent_id (agent_id),
+    KEY idx_realname_id (realname_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='手机卡表';
+
 -- ============================================================
 -- 初始化数据
 -- ============================================================
@@ -139,6 +164,34 @@ INSERT INTO sys_role (role_code, role_name, description, status) VALUES
 -- 用户-角色关联
 INSERT INTO sys_user_role (user_id, role_id) VALUES
 (1, 1), (2, 2), (3, 3);
+
+-- 代理商示例数据
+INSERT INTO phone_agent (agent_name, contact, phone, address, status, remark) VALUES
+('XX科技有限公司', '张经理', '13800000001', '北京市朝阳区', 1, '主要代理商'),
+('YY通信服务中心', '李主任', '13800000002', '上海市浦东新区', 1, '长期合作'),
+('ZZ网络科技', '王主管', '13800000003', '广州市天河区', 1, '代理商');
+
+-- 实名人员示例数据
+INSERT INTO phone_realname (real_name, phone, department, scan_status, remark) VALUES
+('张三', '13800138001', '销售部', 2, '销售代表'),
+('李四', '13800138002', '技术部', 2, '后端工程师'),
+('王五', '13800138003', '运营部', 1, '无法识别人脸'),
+('赵六', '13800138004', '客服部', 3, '需多次识别'),
+('孙七', '13800138005', '市场部', 2, '市场专员');
+
+-- 手机卡示例数据（在用 card_type=1）
+INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realname_id, realname_name, department, package, card_status, card_type, remark) VALUES
+('89860123456789001', 1, 'XX科技有限公司', '13800138001', 1, '张三', '销售部', '59元/月', 1, 1, '销售部在用'),
+('89860123456789002', 2, 'YY通信服务中心', '13800138002', 2, '李四', '技术部', '79元/月', 1, 1, '技术部在用'),
+('89860123456789003', 3, 'ZZ网络科技', '13800138003', 3, '王五', '运营部', '99元/月', 2, 1, '需二次实名'),
+('89860123456789004', 1, 'XX科技有限公司', '13800138004', 4, '赵六', '客服部', '59元/月', 3, 1, '欠费待处理'),
+('89860123456789005', 2, 'YY通信服务中心', '13800138005', 5, '孙七', '市场部', '49元/月', 1, 1, '市场部在用');
+
+-- 手机卡示例数据（备用 card_type=2）
+INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realname_id, realname_name, department, package, card_status, card_type, remark) VALUES
+('89860987654321001', 1, 'XX科技有限公司', '13811112222', NULL, NULL, '', '39元/月', 1, 2, '库存备用卡-01'),
+('89860987654321002', 2, 'YY通信服务中心', '13811113333', NULL, NULL, '', '49元/月', 1, 2, '库存备用卡-02'),
+('89860987654321003', 3, 'ZZ网络科技', '13811114444', NULL, NULL, '', '59元/月', 2, 2, '需二次实名的备用卡');
 
 -- ============================================================
 -- 菜单数据
