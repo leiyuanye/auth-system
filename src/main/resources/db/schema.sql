@@ -90,6 +90,28 @@ CREATE TABLE sys_role_menu (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-菜单(权限)关联表';
 
 -- ------------------------------------------------------------
+-- 操作日志表
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS sys_operate_log;
+CREATE TABLE sys_operate_log (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+    module_name VARCHAR(128) NOT NULL COMMENT '操作模块(如: 在用手机卡/角色管理)',
+    operate_type VARCHAR(32) NOT NULL COMMENT '操作类型:编辑/删除',
+    data_id BIGINT DEFAULT NULL COMMENT '被操作数据的主键ID',
+    data_name VARCHAR(255) DEFAULT NULL COMMENT '被操作数据的标识名(便于人类识别)',
+    field_changed VARCHAR(512) DEFAULT NULL COMMENT '变更字段清单',
+    old_value TEXT COMMENT '修改前值(JSON格式,删除时存删除前完整数据)',
+    new_value TEXT COMMENT '修改后值(JSON格式,删除时留空)',
+    operator VARCHAR(64) DEFAULT NULL COMMENT '操作人用户名',
+    operate_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+    remark VARCHAR(512) DEFAULT NULL COMMENT '备注/人类可读描述',
+    PRIMARY KEY (id),
+    KEY idx_module (module_name),
+    KEY idx_operator (operator),
+    KEY idx_operate_time (operate_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
+
+-- ------------------------------------------------------------
 -- 代理商表
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS phone_agent;
@@ -207,6 +229,7 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (101, '用户管理', '/system/user', 'User', 10, 1, 1, 'system:user:view', 1),
 (102, '角色管理', '/system/role', 'UserFilled', 10, 2, 1, 'system:role:view', 1),
 (103, '菜单管理', '/system/menu', 'Menu', 10, 3, 1, 'system:menu:view', 1),
+(104, '日志管理', '/system/log', 'Document', 10, 4, 1, 'system:log:view', 1),
 
 -- ========== 手机卡管理 ==========
 (20, '手机卡管理', '/phone', 'Iphone', 0, 2, 1, '', 1),
@@ -245,7 +268,10 @@ INSERT INTO sys_menu (menu_name, menu_path, menu_icon, parent_id, sort_order, me
 ('菜单查询', '', '', 103, 1, 2, 'system:menu:view', 1),
 ('菜单新增', '', '', 103, 2, 2, 'system:menu:add', 1),
 ('菜单编辑', '', '', 103, 3, 2, 'system:menu:edit', 1),
-('菜单删除', '', '', 103, 4, 2, 'system:menu:delete', 1);
+('菜单删除', '', '', 103, 4, 2, 'system:menu:delete', 1),
+
+-- 日志管理按钮(parent_id=104)
+('日志查询', '', '', 104, 1, 2, 'system:log:view', 1);
 
 -- ============================================================
 -- 手机卡管理按钮权限
