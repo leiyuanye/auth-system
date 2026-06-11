@@ -33,10 +33,10 @@ public class SysOperateLogController {
     @PostMapping
     public Result<SysOperateLog> create(@RequestBody SysOperateLog log) {
         if (log.getModuleName() == null || log.getModuleName().trim().isEmpty()) {
-            return Result.error("模块名不能为空");
+            return Result.fail("模块名不能为空");
         }
         if (log.getOperateType() == null || log.getOperateType().trim().isEmpty()) {
-            return Result.error("操作类型不能为空");
+            return Result.fail("操作类型不能为空");
         }
         logMapper.insert(log);
         return Result.ok(log);
