@@ -253,6 +253,43 @@ INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, m
 ('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', NULL, '库存', 2, '备用缓存服务器');
 
 -- ============================================================
+-- 服务器字典表（类型/分组/状态等下拉选项可配置）
+-- ============================================================
+DROP TABLE IF EXISTS sys_dict;
+CREATE TABLE sys_dict (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '字典ID',
+    dict_type VARCHAR(64) NOT NULL COMMENT '字典类型: server_type/server_group/server_status/stock_status',
+    dict_key VARCHAR(64) NOT NULL COMMENT '字典键(存DB的值)',
+    dict_value VARCHAR(128) NOT NULL COMMENT '字典值(显示文本)',
+    sort_order INT DEFAULT 0 COMMENT '排序',
+    PRIMARY KEY (id),
+    KEY idx_dict_type (dict_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='字典表';
+
+-- 字典初始数据
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+-- 服务器类型
+('server_type', '腾讯云', '腾讯云', 1),
+('server_type', '阿里云', '阿里云', 2),
+('server_type', '华为云', '华为云', 3),
+('server_type', '物理服务器', '物理服务器', 4),
+('server_type', '其他', '其他', 5),
+-- 所在分组
+('server_group', '数据库组', '数据库组', 1),
+('server_group', '应用组', '应用组', 2),
+('server_group', '缓存组', '缓存组', 3),
+('server_group', '备份组', '备份组', 4),
+('server_group', '其他', '其他', 5),
+-- 运行状态（在用服务器用）
+('server_status', '1', '运行中', 1),
+('server_status', '2', '维护中', 2),
+('server_status', '3', '已下线', 3),
+-- 库存状态（备用服务器用）
+('stock_status', '库存', '库存', 1),
+('stock_status', '已借出', '已借出', 2),
+('stock_status', '报废', '报废', 3);
+
+-- ============================================================
 -- 菜单数据
 -- 一级菜单ID分配: 100=首页, 10=系统管理, 20=手机卡管理, 30=服务器管理
 -- ============================================================

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.auth.mapper.DictMapper">
+
+    <resultMap id="DictMap" type="com.example.auth.entity.Dict">
+        <id column="id" property="id"/>
+        <result column="dict_type" property="dictType"/>
+        <result column="dict_key" property="dictKey"/>
+        <result column="dict_value" property="dictValue"/>
+        <result column="sort_order" property="sortOrder"/>
+    </resultMap>
+
+    <select id="selectByType" resultMap="DictMap">
+        SELECT * FROM sys_dict
+        WHERE dict_type = #{dictType}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <insert id="insert" parameterType="com.example.auth.entity.Dict" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order)
+        VALUES (#{dictType}, #{dictKey}, #{dictValue}, #{sortOrder})
+    </insert>
+
+    <update id="update" parameterType="com.example.auth.entity.Dict">
+        UPDATE sys_dict
+        SET dict_type = #{dictType},
+            dict_key = #{dictKey},
+            dict_value = #{dictValue},
+            sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_dict WHERE id = #{id}
+    </delete>
+
+</mapper>
