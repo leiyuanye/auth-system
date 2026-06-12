@@ -88,8 +88,9 @@ public class OperateLogUtil {
         FIELD_LABEL.put("serverName", "服务器名称");
         FIELD_LABEL.put("ipAddress", "IP地址");
         FIELD_LABEL.put("serverType", "服务器类型");
-        FIELD_LABEL.put("location", "所在机房");
-        FIELD_LABEL.put("specs", "配置");
+        FIELD_LABEL.put("location", "所在地区");
+        FIELD_LABEL.put("specs", "所在分组");
+        FIELD_LABEL.put("mfaKey", "MFA密钥");
         FIELD_LABEL.put("serverStatus", "运行状态");
         FIELD_LABEL.put("stockStatus", "库存状态");
 

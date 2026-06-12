@@ -9,6 +9,7 @@
         <result column="server_type" property="serverType"/>
         <result column="location" property="location"/>
         <result column="specs" property="specs"/>
+        <result column="mfa_key" property="mfaKey"/>
         <result column="server_status" property="serverStatus"/>
         <result column="stock_status" property="stockStatus"/>
         <result column="card_type" property="cardType"/>
@@ -18,7 +19,7 @@
     </resultMap>
 
     <sql id="baseCols">
-        id, server_name, ip_address, server_type, location, specs, server_status, stock_status, card_type, remark, create_time, update_time
+        id, server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, update_time
     </sql>
 
     <select id="selectAll" resultMap="ServerMap">
@@ -97,9 +98,9 @@
     </select>
 
     <insert id="insert" parameterType="com.example.auth.entity.Server" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, server_status, stock_status, card_type, remark, create_time, update_time)
+        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, update_time)
         VALUES (
-            #{serverName}, #{ipAddress}, #{serverType}, #{location}, #{specs},
+            #{serverName}, #{ipAddress}, #{serverType}, #{location}, #{specs}, #{mfaKey},
             #{serverStatus}, #{stockStatus}, #{cardType}, #{remark},
             NOW(), NOW()
         )
@@ -113,6 +114,7 @@
             <if test="serverType != null">server_type = #{serverType},</if>
             <if test="location != null">location = #{location},</if>
             <if test="specs != null">specs = #{specs},</if>
+            <if test="mfaKey != null">mfa_key = #{mfaKey},</if>
             <if test="serverStatus != null">server_status = #{serverStatus},</if>
             <if test="stockStatus != null">stock_status = #{stockStatus},</if>
             <if test="cardType != null">card_type = #{cardType},</if>
