@@ -21,6 +21,7 @@ public interface PhoneCardMapper {
     List<PhoneCard> selectByCondition(
             @Param("keyword") String keyword,
             @Param("cardType") Integer cardType,
+            @Param("usageStatus") Integer usageStatus,
             @Param("cardStatus") Integer cardStatus,
             @Param("groupBy") String groupBy,
             @Param("offset") Integer offset,
@@ -29,12 +30,15 @@ public interface PhoneCardMapper {
     int countByCondition(
             @Param("keyword") String keyword,
             @Param("cardType") Integer cardType,
+            @Param("usageStatus") Integer usageStatus,
             @Param("cardStatus") Integer cardStatus);
 
     // ==================== 统计用 ====================
     int countTotal();
 
     int countByCardType(@Param("cardType") Integer cardType);
+
+    int countByUsageStatus(@Param("usageStatus") Integer usageStatus);
 
     int countByCardStatus(@Param("cardStatus") Integer cardStatus);
 

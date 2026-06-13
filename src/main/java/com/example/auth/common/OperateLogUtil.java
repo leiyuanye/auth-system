@@ -44,10 +44,9 @@ public class OperateLogUtil {
         FIELD_LABEL.put("phoneNumber", "手机号");
         FIELD_LABEL.put("realnameId", "实名人ID");
         FIELD_LABEL.put("realnameName", "实名人");
-        FIELD_LABEL.put("department", "部门");
-        FIELD_LABEL.put("package_", "套餐");
+        FIELD_LABEL.put("usageStatus", "使用状态");
         FIELD_LABEL.put("cardStatus", "状态");
-        FIELD_LABEL.put("cardType", "类型");
+        FIELD_LABEL.put("cardType", "卡类型");
 
         // ----- 代理商 (phone_agent) -----
         FIELD_LABEL.put("agentName", "代理商名称");
@@ -105,11 +104,17 @@ public class OperateLogUtil {
         cardStatusMap.put("3", "欠费");
         FIELD_VALUE_LABEL.put("cardStatus", cardStatusMap);
 
-        // 手机卡类型: 1=在用, 2=备用
+        // 手机卡类型：具体含义可在数据字典 phone_card_type 中维护
         Map<String, String> cardTypeMap = new HashMap<>();
-        cardTypeMap.put("1", "在用");
-        cardTypeMap.put("2", "备用");
+        cardTypeMap.put("1", "普通卡");
+        cardTypeMap.put("2", "物联卡");
         FIELD_VALUE_LABEL.put("cardType", cardTypeMap);
+
+        // 使用状态: 1=使用中, 2=库存
+        Map<String, String> usageStatusMap = new HashMap<>();
+        usageStatusMap.put("1", "使用中");
+        usageStatusMap.put("2", "库存");
+        FIELD_VALUE_LABEL.put("usageStatus", usageStatusMap);
 
         // 扫脸便捷性: 1=不能扫脸, 2=方便扫脸, 3=较难扫脸
         Map<String, String> scanStatusMap = new HashMap<>();

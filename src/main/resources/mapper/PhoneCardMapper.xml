@@ -10,7 +10,7 @@
         <result column="phone_number" property="phoneNumber"/>
         <result column="realname_id" property="realnameId"/>
         <result column="realname_name" property="realnameName"/>
-        <result column="department" property="department"/>
+        <result column="usage_status" property="usageStatus"/>
         <result column="card_status" property="cardStatus"/>
         <result column="card_type" property="cardType"/>
         <result column="remark" property="remark"/>
@@ -20,21 +20,21 @@
 
     <select id="selectAll" resultMap="PhoneCardMap">
         SELECT id, card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
-               department, card_status, card_type, remark, create_time, update_time
+               usage_status, card_status, card_type, remark, create_time, update_time
         FROM phone_card
         ORDER BY id DESC
     </select>
 
     <select id="selectById" resultMap="PhoneCardMap">
         SELECT id, card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
-               department, card_status, card_type, remark, create_time, update_time
+               usage_status, card_status, card_type, remark, create_time, update_time
         FROM phone_card
         WHERE id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="PhoneCardMap">
         SELECT id, card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
-               department, card_status, card_type, remark, create_time, update_time
+               usage_status, card_status, card_type, remark, create_time, update_time
         FROM phone_card
         <where>
             <if test="keyword != null and keyword != ''">
@@ -44,6 +44,9 @@
             </if>
             <if test="cardType != null">
                 AND card_type = #{cardType}
+            </if>
+            <if test="usageStatus != null">
+                AND usage_status = #{usageStatus}
             </if>
             <if test="cardStatus != null">
                 AND card_status = #{cardStatus}
@@ -56,8 +59,8 @@
             <when test="groupBy == 'agentName'">
                 ORDER BY agent_name IS NULL, agent_name ASC, id DESC
             </when>
-            <when test="groupBy == 'department'">
-                ORDER BY department IS NULL, department ASC, id DESC
+            <when test="groupBy == 'usageStatus'">
+                ORDER BY usage_status IS NULL, usage_status ASC, id DESC
             </when>
             <when test="groupBy == 'realnameName'">
                 ORDER BY realname_name IS NULL, realname_name ASC, id DESC
@@ -85,6 +88,9 @@
             <if test="cardType != null">
                 AND card_type = #{cardType}
             </if>
+            <if test="usageStatus != null">
+                AND usage_status = #{usageStatus}
+            </if>
             <if test="cardStatus != null">
                 AND card_status = #{cardStatus}
             </if>
@@ -93,9 +99,9 @@
 
     <insert id="insert" parameterType="com.example.auth.entity.PhoneCard" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realname_id, realname_name,
-                                department, card_status, card_type, remark, create_time, update_time)
+                                usage_status, card_status, card_type, remark, create_time, update_time)
         VALUES (#{cardNumber}, #{agentId}, #{agentName}, #{phoneNumber}, #{realnameId}, #{realnameName},
-                #{department}, #{cardStatus}, #{cardType}, #{remark}, NOW(), NOW())
+                #{usageStatus}, #{cardStatus}, #{cardType}, #{remark}, NOW(), NOW())
     </insert>
 
     <update id="update" parameterType="com.example.auth.entity.PhoneCard">
@@ -107,7 +113,7 @@
             <if test="phoneNumber != null">phone_number = #{phoneNumber},</if>
             <if test="realnameId != null">realname_id = #{realnameId},</if>
             <if test="realnameName != null">realname_name = #{realnameName},</if>
-            <if test="department != null">department = #{department},</if>
+            <if test="usageStatus != null">usage_status = #{usageStatus},</if>
             <if test="cardStatus != null">card_status = #{cardStatus},</if>
             <if test="cardType != null">card_type = #{cardType},</if>
             <if test="remark != null">remark = #{remark},</if>
@@ -130,6 +136,15 @@
         <where>
             <if test="cardType != null">
                 AND card_type = #{cardType}
+            </if>
+        </where>
+    </select>
+
+    <select id="countByUsageStatus" resultType="int">
+        SELECT COUNT(*) FROM phone_card
+        <where>
+            <if test="usageStatus != null">
+                AND usage_status = #{usageStatus}
             </if>
         </where>
     </select>

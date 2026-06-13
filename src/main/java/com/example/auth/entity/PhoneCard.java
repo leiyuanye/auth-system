@@ -13,7 +13,7 @@ public class PhoneCard {
     private String phoneNumber;
     private Long realnameId;
     private String realnameName;
-    private String department;
+    private Integer usageStatus;
     private Integer cardStatus;
     private Integer cardType;
     private String remark;

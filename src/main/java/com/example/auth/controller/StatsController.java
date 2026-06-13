@@ -36,8 +36,8 @@ public class StatsController {
         Map<String, Object> data = new HashMap<>();
 
         int total = phoneCardMapper.countTotal();
-        int activeCards = phoneCardMapper.countByCardType(1);
-        int backupCards = phoneCardMapper.countByCardType(2);
+        int activeCards = phoneCardMapper.countByUsageStatus(1);
+        int backupCards = phoneCardMapper.countByUsageStatus(2);
         int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
 
         data.put("totalCards", total);
@@ -105,7 +105,7 @@ public class StatsController {
 
         int totalCards = phoneCardMapper.countTotal();
         int totalServers = serverMapper.countTotal();
-        int activeCards = phoneCardMapper.countByCardType(1);
+        int activeCards = phoneCardMapper.countByUsageStatus(1);
         int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
         int runningServers = serverMapper.countByServerStatus(1); // 运行中
         int expiredServers = serverMapper.countByServerStatus(4); // 到期(异常)
@@ -117,7 +117,7 @@ public class StatsController {
         data.put("runningServers", runningServers);
         data.put("warningServers", expiredServers);
 
-        List<Map<String, Object>> monthlyCardTrend = phoneCardMapper.selectByCondition(null, null, null, null, 0, 10000)
+        List<Map<String, Object>> monthlyCardTrend = phoneCardMapper.selectByCondition(null, null, null, null, null, 0, 10000)
                 .stream()
                 .filter(c -> c.getCreateTime() != null)
                 .collect(java.util.stream.Collectors.groupingBy(
