@@ -57,9 +57,6 @@ public class ServerController {
 
     @PostMapping
     public Result<Map<String, Object>> add(@RequestBody Server server, HttpServletRequest request) {
-        if (server.getServerName() == null || server.getServerName().trim().isEmpty()) {
-            return Result.fail("服务器名称不能为空");
-        }
         int rows = serverMapper.insert(server);
         logUtil.logAdd(MODULE_NAME, server.getId(), server.getServerName(), server, currentUser(request));
         Map<String, Object> data = new HashMap<>();
@@ -271,13 +268,22 @@ public class ServerController {
             for (int i = startRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
-                Cell nameCell = row.getCell(0);
-                if (nameCell == null || nameCell.getCellType() == CellType.BLANK) continue;
-                String serverName = getCellString(nameCell);
-                if (serverName == null || serverName.trim().isEmpty()) continue;
+                // 检查整行是否为空（所有关键列都没有值则跳过）
+                boolean rowEmpty = true;
+                for (int c = 0; c <= 12; c++) {
+                    Cell checkCell = row.getCell(c);
+                    if (checkCell != null && checkCell.getCellType() != CellType.BLANK) {
+                        String val = getCellString(checkCell);
+                        if (val != null && !val.trim().isEmpty()) {
+                            rowEmpty = false;
+                            break;
+                        }
+                    }
+                }
+                if (rowEmpty) continue;
 
                 Server s = new Server();
-                s.setServerName(serverName);
+                s.setServerName(getCellString(row.getCell(0)));
                 s.setIpAddress(getCellString(row.getCell(1)));
                 s.setServerType(getCellString(row.getCell(2)));
                 s.setLocation(getCellString(row.getCell(3)));
