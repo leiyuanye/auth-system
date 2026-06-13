@@ -82,19 +82,6 @@ CREATE TABLE sys_operate_log (
     KEY idx_operate_time (operate_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP TABLE IF EXISTS phone_agent;
-CREATE TABLE phone_agent (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    agent_name VARCHAR(128) NOT NULL,
-    contact VARCHAR(64) DEFAULT NULL,
-    phone VARCHAR(32) DEFAULT NULL,
-    address VARCHAR(255) DEFAULT NULL,
-    status TINYINT DEFAULT 1,
-    remark VARCHAR(255) DEFAULT NULL,
-    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 DROP TABLE IF EXISTS phone_realname;
 CREATE TABLE phone_realname (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -111,7 +98,6 @@ DROP TABLE IF EXISTS phone_card;
 CREATE TABLE phone_card (
     id BIGINT NOT NULL AUTO_INCREMENT,
     card_number VARCHAR(64) NOT NULL,
-    agent_id BIGINT DEFAULT NULL,
     agent_name VARCHAR(128) DEFAULT NULL,
     phone_number VARCHAR(32) DEFAULT NULL,
     realname_id BIGINT DEFAULT NULL,
@@ -124,7 +110,6 @@ CREATE TABLE phone_card (
     update_time DATETIME DEFAULT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_card_number (card_number),
-    KEY idx_agent_id (agent_id),
     KEY idx_realname_id (realname_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -163,11 +148,6 @@ INSERT INTO sys_role (role_code, role_name, description, status) VALUES
 INSERT INTO sys_user_role (user_id, role_id) VALUES
 (1, 1), (2, 2), (3, 3);
 
-INSERT INTO phone_agent (agent_name, contact, phone, address, status, remark) VALUES
-('XX科技有限公司', '张经理', '13800000001', '北京市朝阳区', 1, '主要代理商'),
-('YY通信服务中心', '李主任', '13800000002', '上海市浦东新区', 1, '长期合作'),
-('ZZ网络科技', '王主管', '13800000003', '广州市天河区', 1, '代理商');
-
 INSERT INTO phone_realname (real_name, phone, department, scan_status, remark) VALUES
 ('张三', '13800138001', '销售部', 2, '销售代表'),
 ('李四', '13800138002', '技术部', 2, '后端工程师'),
@@ -175,15 +155,15 @@ INSERT INTO phone_realname (real_name, phone, department, scan_status, remark) V
 ('赵六', '13800138004', '客服部', 3, '需多次识别'),
 ('孙七', '13800138005', '市场部', 2, '市场专员');
 
-INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, card_type, remark) VALUES
-('89860123456789001', 1, 'XX科技有限公司', '13800138001', 1, '张三', 1, 1, 1, '销售部在用'),
-('89860123456789002', 2, 'YY通信服务中心', '13800138002', 2, '李四', 1, 1, 1, '技术部在用'),
-('89860123456789003', 3, 'ZZ网络科技', '13800138003', 3, '王五', 1, 2, 1, '需二次实名'),
-('89860123456789004', 1, 'XX科技有限公司', '13800138004', 4, '赵六', 1, 3, 1, '欠费待处理'),
-('89860123456789005', 2, 'YY通信服务中心', '13800138005', 5, '孙七', 1, 1, 1, '市场部在用'),
-('89860987654321001', 1, 'XX科技有限公司', '13811112222', NULL, NULL, 2, 1, 1, '库存备用卡-01'),
-('89860987654321002', 2, 'YY通信服务中心', '13811113333', NULL, NULL, 2, 1, 1, '库存备用卡-02'),
-('89860987654321003', 3, 'ZZ网络科技', '13811114444', NULL, NULL, 2, 2, 1, '需二次实名的备用卡');
+INSERT INTO phone_card (card_number, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, card_type, remark) VALUES
+('89860123456789001', 'XX科技有限公司', '13800138001', 1, '张三', 1, 1, 1, '销售部在用'),
+('89860123456789002', 'YY通信服务中心', '13800138002', 2, '李四', 1, 1, 1, '技术部在用'),
+('89860123456789003', 'ZZ网络科技', '13800138003', 3, '王五', 1, 2, 1, '需二次实名'),
+('89860123456789004', 'XX科技有限公司', '13800138004', 4, '赵六', 1, 3, 1, '欠费待处理'),
+('89860123456789005', 'YY通信服务中心', '13800138005', 5, '孙七', 1, 1, 1, '市场部在用'),
+('89860987654321001', 'XX科技有限公司', '13811112222', NULL, NULL, 2, 1, 1, '库存备用卡-01'),
+('89860987654321002', 'YY通信服务中心', '13811113333', NULL, NULL, 2, 1, 1, '库存备用卡-02'),
+('89860987654321003', 'ZZ网络科技', '13811114444', NULL, NULL, 2, 2, 1, '需二次实名的备用卡');
 
 INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, remote_account, remote_pwd, backend_account, backend_pwd, remark, expire_time) VALUES
 ('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, 'root', 'dbRoot2026', 'admin', 'admin@db', '主数据库服务器', '2026-12-31 23:59:59'),
@@ -226,7 +206,10 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('phone_usage_status', '2', '库存', 2),
 ('phone_card_status', '1', '正常', 1),
 ('phone_card_status', '2', '二次实名', 2),
-('phone_card_status', '3', '欠费', 3);
+('phone_card_status', '3', '欠费', 3),
+('phone_agent', 'XX科技有限公司', 'XX科技有限公司', 1),
+('phone_agent', 'YY通信服务中心', 'YY通信服务中心', 2),
+('phone_agent', 'ZZ网络科技', 'ZZ网络科技', 3);
 
 INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
 (100, '首页', '/home', 'HomeFilled', 0, 0, 1, NULL, 1),
@@ -239,7 +222,6 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (20, '手机卡管理', '/phone', 'Iphone', 0, 2, 1, '', 1),
 (201, '手机卡', '/phone/list', 'Tickets', 20, 1, 1, 'phone:list:view', 1),
 (203, '数据总览', '/phone/overview', 'DataAnalysis', 20, 2, 1, 'phone:overview:view', 1),
-(204, '代理商管理', '/phone/agent', 'UserFilled', 20, 3, 1, 'phone:agent:view', 1),
 (30, '服务器管理', '/server', 'Monitor', 0, 3, 1, '', 1),
 (301, '服务器', '/server/list', 'Monitor', 30, 1, 1, 'server:active:view', 1),
 (303, '服务器总览', '/server/overview', 'DataLine', 30, 3, 1, 'server:overview:view', 1),
@@ -268,10 +250,6 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (20102, '手机卡新增', '', '', 201, 2, 2, 'phone:list:add', 1),
 (20103, '手机卡编辑', '', '', 201, 3, 2, 'phone:list:edit', 1),
 (20104, '手机卡删除', '', '', 201, 4, 2, 'phone:list:delete', 1),
-(20401, '代理商查询', '', '', 204, 1, 2, 'phone:agent:view', 1),
-(20402, '代理商新增', '', '', 204, 2, 2, 'phone:agent:add', 1),
-(20403, '代理商编辑', '', '', 204, 3, 2, 'phone:agent:edit', 1),
-(20404, '代理商删除', '', '', 204, 4, 2, 'phone:agent:delete', 1),
 (20301, '数据总览查询', '', '', 203, 1, 2, 'phone:overview:view', 1),
 (20302, '数据总览导出', '', '', 203, 2, 2, 'phone:overview:export', 1),
 (30101, '服务器查询', '', '', 301, 1, 2, 'server:active:view', 1),
@@ -296,7 +274,6 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (2, 20),
 (2, 201), (2, 20101), (2, 20102), (2, 20103), (2, 20104),
 (2, 203), (2, 20301), (2, 20302),
-(2, 204), (2, 20401), (2, 20402), (2, 20403), (2, 20404),
 (2, 30),
 (2, 301), (2, 30101), (2, 30102), (2, 30103), (2, 30104),
 (2, 303), (2, 30301), (2, 30302),
@@ -307,7 +284,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 100), (3, 10),
 (3, 101), (3, 102), (3, 103), (3, 104), (3, 105),
 (3, 20),
-(3, 201), (3, 203), (3, 204),
+(3, 201), (3, 203),
 (3, 30),
 (3, 301), (3, 303),
 (3, 40), (3, 401);

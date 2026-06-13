@@ -8,7 +8,6 @@ import java.util.Date;
 public class PhoneCard {
     private Long id;
     private String cardNumber;
-    private Long agentId;
     private String agentName;
     private String phoneNumber;
     private Long realnameId;
