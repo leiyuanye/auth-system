@@ -97,11 +97,11 @@ CREATE TABLE phone_realname (
 DROP TABLE IF EXISTS phone_card;
 CREATE TABLE phone_card (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    iccd VARCHAR(64) NOT NULL,
+    iccd VARCHAR(64) DEFAULT NULL,
     agent_name VARCHAR(128) DEFAULT NULL,
     phone_number VARCHAR(32) DEFAULT NULL,
     realname_id BIGINT DEFAULT NULL,
-    realname_name VARCHAR(64) DEFAULT NULL,
+    realname_name VARCHAR(64) NOT NULL,
     usage_status TINYINT DEFAULT 1,
     card_status TINYINT DEFAULT 1,
     operator_type TINYINT DEFAULT 1,

@@ -57,8 +57,8 @@ public class PhoneCardController {
 
     @PostMapping
     public Result<Map<String, Object>> add(@RequestBody PhoneCard card, HttpServletRequest request) {
-        if (card.getIccd() == null || card.getIccd().trim().isEmpty()) {
-            return Result.fail("ICCID不能为空");
+        if (card.getRealnameName() == null || card.getRealnameName().trim().isEmpty()) {
+            return Result.fail("实名人不能为空");
         }
         if (card.getCardStatus() == null) card.setCardStatus(1);
         int rows = cardMapper.insert(card);
@@ -87,17 +87,18 @@ public class PhoneCardController {
     }
 
     /**
-     * 下载导入模板
+     * 下载导入模板(返回Excel文件流)
      */
-    @GetMapping("/template")
+    @GetMapping(value = "/template", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public void downloadTemplate(HttpServletResponse response) throws Exception {
         PhoneCardExcelUtil.generateTemplate(response);
+        response.flushBuffer();
     }
 
     /**
-     * 导出手机卡数据
+     * 导出手机卡数据(返回Excel文件流)
      */
-    @GetMapping("/export")
+    @GetMapping(value = "/export", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public void exportExcel(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer operatorType,
@@ -106,6 +107,7 @@ public class PhoneCardController {
             HttpServletResponse response) throws Exception {
         List<PhoneCard> list = cardMapper.selectByCondition(keyword, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
         PhoneCardExcelUtil.exportExcel(list, response);
+        response.flushBuffer();
     }
 
     /**
