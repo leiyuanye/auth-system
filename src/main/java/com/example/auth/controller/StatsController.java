@@ -1,7 +1,11 @@
 package com.example.auth.controller;
 
 import com.example.auth.common.Result;
-import com.example.auth.entity.Server;
+import com.example.auth.dto.AgentCountItem;
+import com.example.auth.dto.MonthCountItem;
+import com.example.auth.dto.OperatorCountItem;
+import com.example.auth.dto.RealnameDetailItem;
+import com.example.auth.dto.StatusCountItem;
 import com.example.auth.mapper.PhoneCardMapper;
 import com.example.auth.mapper.ServerMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +19,6 @@ import java.util.Map;
 /**
  * 统计/Overview 接口
  * path: /api/stats
- * 服务器管理：在用/备用合并，按 server_status 状态聚合
  */
 @RestController
 @RequestMapping("/api/stats")
@@ -35,33 +38,28 @@ public class StatsController {
     public Result<Map<String, Object>> phoneOverview() {
         Map<String, Object> data = new HashMap<>();
 
-        int total = phoneCardMapper.countTotal();
-        int activeCards = phoneCardMapper.countByUsageStatus(1);
-        int backupCards = phoneCardMapper.countByUsageStatus(2);
-        int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
+        data.put("totalCards", phoneCardMapper.countTotal());
+        data.put("activeCards", phoneCardMapper.countByUsageStatus(1));
+        data.put("backupCards", phoneCardMapper.countByUsageStatus(2));
+        data.put("warningCards", phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3));
 
-        data.put("totalCards", total);
-        data.put("activeCards", activeCards);
-        data.put("backupCards", backupCards);
-        data.put("warningCards", warningCards);
-
-        List<Map<String, Object>> agentDist = phoneCardMapper.countByAgent();
+        List<AgentCountItem> agentDist = phoneCardMapper.countByAgent();
         data.put("agentDistribution", agentDist);
 
-        List<Map<String, Object>> statusDist = phoneCardMapper.countByStatusGroup();
+        List<StatusCountItem> statusDist = phoneCardMapper.countByStatusGroup();
         data.put("statusDistribution", statusDist);
 
-        List<Map<String, Object>> monthly = phoneCardMapper.monthlyExceptionProcess();
+        List<MonthCountItem> monthly = phoneCardMapper.monthlyExceptionProcess();
         data.put("monthlyExceptionProcess", monthly);
 
-        // 运营商维度实名人数量
-        List<Map<String, Object>> realnameDist = phoneCardMapper.countRealnameByOperator();
-        int totalRealname = phoneCardMapper.countTotalRealname();
+        // 运营商维度实名人数量（总览柱状图）
+        List<OperatorCountItem> realnameDist = phoneCardMapper.countRealnameByOperator();
         data.put("realnameByOperator", realnameDist);
-        data.put("totalRealnameCards", totalRealname);
+        data.put("totalRealnameCards", phoneCardMapper.countTotalRealname());
 
-        // 每个实名人 × 运营商交叉统计
-        data.put("realnameWithOperatorTable", phoneCardMapper.countByRealnameWithOperator());
+        // 每个实名人 × 运营商明细
+        List<RealnameDetailItem> realnameTable = phoneCardMapper.countByRealnameWithOperator();
+        data.put("realnameWithOperatorTable", realnameTable);
 
         return Result.ok(data);
     }

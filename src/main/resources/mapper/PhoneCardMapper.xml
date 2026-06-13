@@ -147,9 +147,9 @@
         </where>
     </select>
 
-    <select id="countByAgent" resultType="java.util.Map">
+    <select id="countByAgent" resultType="com.example.auth.dto.AgentCountItem">
         SELECT
-            agent_name AS agentName,
+            agent_name AS agent_name,
             COUNT(*) AS count
         FROM phone_card
         WHERE agent_name IS NOT NULL AND agent_name != ''
@@ -157,30 +157,30 @@
         ORDER BY count DESC
     </select>
 
-    <select id="countByStatusGroup" resultType="java.util.Map">
+    <select id="countByStatusGroup" resultType="com.example.auth.dto.StatusCountItem">
         SELECT
-            card_status AS cardStatus,
+            card_status AS card_status,
             COUNT(*) AS count
         FROM phone_card
         GROUP BY card_status
     </select>
 
-    <select id="monthlyExceptionProcess" resultType="java.util.Map">
+    <select id="monthlyExceptionProcess" resultType="com.example.auth.dto.MonthCountItem">
         SELECT
-            DATE_FORMAT(update_time, '%Y-%m') AS monthLabel,
+            DATE_FORMAT(update_time, '%Y-%m') AS month_label,
             COUNT(*) AS count
         FROM phone_card
         WHERE update_time IS NOT NULL
           AND card_status IS NOT NULL
         GROUP BY DATE_FORMAT(update_time, '%Y-%m')
-        ORDER BY monthLabel ASC
+        ORDER BY month_label ASC
         LIMIT 12
     </select>
 
-    <select id="countRealnameByOperator" resultType="java.util.Map">
+    <select id="countRealnameByOperator" resultType="com.example.auth.dto.OperatorCountItem">
         SELECT
-            pc.operator_type AS operatorType,
-            COALESCE(d.dict_value, '其他') AS operatorLabel,
+            pc.operator_type AS operator_type,
+            COALESCE(d.dict_value, '其他') AS operator_label,
             COUNT(*) AS count
         FROM phone_card pc
         LEFT JOIN sys_dict d
@@ -191,19 +191,19 @@
         ORDER BY count DESC
     </select>
 
-    <select id="countByRealnameWithOperator" resultType="java.util.Map">
+    <select id="countByRealnameWithOperator" resultType="com.example.auth.dto.RealnameDetailItem">
         SELECT
-            realname_name AS realnameName,
-            COUNT(*) AS totalCount,
-            SUM(CASE WHEN operator_type = 1 THEN 1 ELSE 0 END) AS mobileCount,
-            SUM(CASE WHEN operator_type = 2 THEN 1 ELSE 0 END) AS unicomCount,
-            SUM(CASE WHEN operator_type = 3 THEN 1 ELSE 0 END) AS telecomCount,
-            SUM(CASE WHEN operator_type = 4 THEN 1 ELSE 0 END) AS otherCount
+            realname_name AS realname_name,
+            COUNT(*) AS total_count,
+            SUM(CASE WHEN operator_type = 1 THEN 1 ELSE 0 END) AS mobile_count,
+            SUM(CASE WHEN operator_type = 2 THEN 1 ELSE 0 END) AS unicom_count,
+            SUM(CASE WHEN operator_type = 3 THEN 1 ELSE 0 END) AS telecom_count,
+            SUM(CASE WHEN operator_type = 4 THEN 1 ELSE 0 END) AS other_count
         FROM phone_card
         WHERE realname_id IS NOT NULL
            OR (realname_name IS NOT NULL AND realname_name != '' AND realname_name != '未实名')
         GROUP BY realname_name
-        ORDER BY totalCount DESC
+        ORDER BY total_count DESC
     </select>
 
     <select id="countTotalRealname" resultType="int">
