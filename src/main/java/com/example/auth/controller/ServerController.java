@@ -126,7 +126,8 @@ public class ServerController {
                 cell.setCellStyle(headerStyle);
             }
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+            SimpleDateFormat fileSdf = new SimpleDateFormat("yyyyMMddHHmmss");
             int rowIdx = 1;
             for (Server s : list) {
                 Row row = sheet.createRow(rowIdx++);
@@ -138,7 +139,6 @@ public class ServerController {
                     } else if (val instanceof Date) {
                         cell.setCellValue(sdf.format((Date) val));
                     } else if ("serverStatus".equals(EXPORT_COLS[i])) {
-                        // 状态转中文
                         cell.setCellValue(statusText(val));
                     } else {
                         cell.setCellValue(String.valueOf(val));
@@ -151,7 +151,7 @@ public class ServerController {
                 sheet.autoSizeColumn(i);
             }
 
-            String filename = "服务器列表_" + sdf.format(new Date()) + ".xlsx";
+            String filename = "服务器列表_" + fileSdf.format(new Date()) + ".xlsx";
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
             OutputStream out = response.getOutputStream();
@@ -263,7 +263,11 @@ public class ServerController {
             int startRow = 1; // 第0行是表头，从第1行开始读数据
             int imported = 0;
             List<Server> servers = new ArrayList<>();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat[] dateFormats = {
+                new SimpleDateFormat("yyyy/MM/dd"),
+                new SimpleDateFormat("yyyy-MM-dd"),
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            };
 
             for (int i = startRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
@@ -299,7 +303,9 @@ public class ServerController {
                 s.setBackendPwd(getCellString(row.getCell(10)));
                 String expireStr = getCellString(row.getCell(11));
                 if (expireStr != null && !expireStr.isEmpty()) {
-                    try { s.setExpireTime(sdf.parse(expireStr)); } catch (Exception ignored) {}
+                    for (SimpleDateFormat fmt : dateFormats) {
+                        try { s.setExpireTime(fmt.parse(expireStr)); break; } catch (Exception ignored) {}
+                    }
                 }
                 s.setRemark(getCellString(row.getCell(12)));
                 servers.add(s);
