@@ -17,6 +17,11 @@ public interface ServerMapper {
 
     int insert(Server server);
 
+    /**
+     * 批量插入（导入用）
+     */
+    int batchInsert(List<Server> servers);
+
     int update(Server server);
 
     int deleteById(@Param("id") Long id);
@@ -33,6 +38,11 @@ public interface ServerMapper {
     int countByCondition(
             @Param("keyword") String keyword,
             @Param("serverStatus") Integer serverStatus);
+
+    /**
+     * 导出全部数据（不分页）
+     */
+    List<Server> selectAllForExport();
 
     // ==================== 统计用 ====================
     int countTotal();

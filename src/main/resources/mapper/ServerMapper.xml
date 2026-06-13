@@ -66,6 +66,10 @@
         </where>
     </select>
 
+    <select id="selectAllForExport" resultMap="ServerMap">
+        SELECT <include refid="baseCols"/> FROM sys_server ORDER BY id DESC
+    </select>
+
     <select id="countTotal" resultType="int">
         SELECT COUNT(*) FROM sys_server
     </select>
@@ -88,6 +92,18 @@
             #{remoteAccount}, #{remotePwd}, #{backendAccount}, #{backendPwd}, #{remark},
             NOW(), #{expireTime}
         )
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status,
+                                remote_account, remote_pwd, backend_account, backend_pwd, remark,
+                                create_time, expire_time)
+        VALUES
+        <foreach collection="list" item="s" separator=",">
+            (#{s.serverName}, #{s.ipAddress}, #{s.serverType}, #{s.location}, #{s.specs}, #{s.mfaKey}, #{s.serverStatus},
+             #{s.remoteAccount}, #{s.remotePwd}, #{s.backendAccount}, #{s.backendPwd}, #{s.remark},
+             NOW(), #{s.expireTime})
+        </foreach>
     </insert>
 
     <update id="update" parameterType="com.example.auth.entity.Server">
