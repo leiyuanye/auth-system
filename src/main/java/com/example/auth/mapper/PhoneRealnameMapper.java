@@ -21,10 +21,12 @@ public interface PhoneRealnameMapper {
     List<PhoneRealname> selectByCondition(
             @Param("keyword") String keyword,
             @Param("scanStatus") Integer scanStatus,
+            @Param("colleagueStatus") String colleagueStatus,
             @Param("offset") Integer offset,
             @Param("limit") Integer limit);
 
     int countByCondition(
             @Param("keyword") String keyword,
-            @Param("scanStatus") Integer scanStatus);
+            @Param("scanStatus") Integer scanStatus,
+            @Param("colleagueStatus") String colleagueStatus);
 }

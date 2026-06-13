@@ -35,11 +35,12 @@ public class PhoneRealnameController {
     public Result<PageResult<PhoneRealname>> list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer scanStatus,
+            @RequestParam(required = false) String colleagueStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<PhoneRealname> list = realnameMapper.selectByCondition(keyword, scanStatus, offset, size);
-        int total = realnameMapper.countByCondition(keyword, scanStatus);
+        List<PhoneRealname> list = realnameMapper.selectByCondition(keyword, scanStatus, colleagueStatus, offset, size);
+        int total = realnameMapper.countByCondition(keyword, scanStatus, colleagueStatus);
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
@@ -56,6 +57,9 @@ public class PhoneRealnameController {
         }
         if (realname.getScanStatus() == null) {
             realname.setScanStatus(1);
+        }
+        if (realname.getColleagueStatus() == null || realname.getColleagueStatus().trim().isEmpty()) {
+            realname.setColleagueStatus("active");
         }
         realnameMapper.insert(realname);
         logUtil.logAdd(MODULE_NAME, realname.getId(), realname.getRealName(), realname, currentUser(request));

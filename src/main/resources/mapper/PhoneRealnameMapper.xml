@@ -5,8 +5,8 @@
     <resultMap id="PhoneRealnameMap" type="com.example.auth.entity.PhoneRealname">
         <id column="id" property="id"/>
         <result column="real_name" property="realName"/>
-        <result column="phone" property="phone"/>
-        <result column="department" property="department"/>
+        <result column="colleague_status" property="colleagueStatus"/>
+        <result column="colleague_name" property="colleagueName"/>
         <result column="scan_status" property="scanStatus"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
@@ -14,26 +14,29 @@
 
     <!-- ============ 查询 ============ -->
     <select id="selectAll" resultMap="PhoneRealnameMap">
-        SELECT id, real_name, phone, department, scan_status, remark, create_time
+        SELECT id, real_name, colleague_status, colleague_name, scan_status, remark, create_time
         FROM phone_realname
         ORDER BY id DESC
     </select>
 
     <select id="selectById" resultMap="PhoneRealnameMap">
-        SELECT id, real_name, phone, department, scan_status, remark, create_time
+        SELECT id, real_name, colleague_status, colleague_name, scan_status, remark, create_time
         FROM phone_realname
         WHERE id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="PhoneRealnameMap">
-        SELECT id, real_name, phone, department, scan_status, remark, create_time
+        SELECT id, real_name, colleague_status, colleague_name, scan_status, remark, create_time
         FROM phone_realname
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (real_name LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
+                AND (real_name LIKE CONCAT('%', #{keyword}, '%') OR colleague_name LIKE CONCAT('%', #{keyword}, '%'))
             </if>
             <if test="scanStatus != null">
                 AND scan_status = #{scanStatus}
+            </if>
+            <if test="colleagueStatus != null and colleagueStatus != ''">
+                AND colleague_status = #{colleagueStatus}
             </if>
         </where>
         ORDER BY id DESC
@@ -46,18 +49,21 @@
         SELECT COUNT(*) FROM phone_realname
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (real_name LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
+                AND (real_name LIKE CONCAT('%', #{keyword}, '%') OR colleague_name LIKE CONCAT('%', #{keyword}, '%'))
             </if>
             <if test="scanStatus != null">
                 AND scan_status = #{scanStatus}
+            </if>
+            <if test="colleagueStatus != null and colleagueStatus != ''">
+                AND colleague_status = #{colleagueStatus}
             </if>
         </where>
     </select>
 
     <!-- ============ 新增 ============ -->
     <insert id="insert" parameterType="com.example.auth.entity.PhoneRealname" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO phone_realname (real_name, phone, department, scan_status, remark, create_time)
-        VALUES (#{realName}, #{phone}, #{department}, #{scanStatus}, #{remark}, NOW())
+        INSERT INTO phone_realname (real_name, colleague_status, colleague_name, scan_status, remark, create_time)
+        VALUES (#{realName}, #{colleagueStatus}, #{colleagueName}, #{scanStatus}, #{remark}, NOW())
     </insert>
 
     <!-- ============ 更新 ============ -->
@@ -65,8 +71,8 @@
         UPDATE phone_realname
         <set>
             <if test="realName != null">real_name = #{realName},</if>
-            <if test="phone != null">phone = #{phone},</if>
-            <if test="department != null">department = #{department},</if>
+            <if test="colleagueStatus != null">colleague_status = #{colleagueStatus},</if>
+            <if test="colleagueName != null">colleague_name = #{colleagueName},</if>
             <if test="scanStatus != null">scan_status = #{scanStatus},</if>
             <if test="remark != null">remark = #{remark},</if>
         </set>

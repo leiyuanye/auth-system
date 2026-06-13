@@ -7,8 +7,8 @@ import java.util.Date;
 public class PhoneRealname {
     private Long id;
     private String realName;
-    private String phone;
-    private String department;
+    private String colleagueStatus;
+    private String colleagueName;
     private Integer scanStatus;
     private String remark;
     private Date createTime;

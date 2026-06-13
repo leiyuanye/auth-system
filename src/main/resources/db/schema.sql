@@ -86,12 +86,13 @@ DROP TABLE IF EXISTS phone_realname;
 CREATE TABLE phone_realname (
     id BIGINT NOT NULL AUTO_INCREMENT,
     real_name VARCHAR(64) NOT NULL,
-    phone VARCHAR(32) DEFAULT NULL,
-    department VARCHAR(128) DEFAULT NULL,
+    colleague_status VARCHAR(32) DEFAULT 'active',
+    colleague_name VARCHAR(128) DEFAULT NULL,
     scan_status TINYINT DEFAULT 1,
     remark VARCHAR(255) DEFAULT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    KEY idx_colleague_status (colleague_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS phone_card;
@@ -148,12 +149,12 @@ INSERT INTO sys_role (role_code, role_name, description, status) VALUES
 INSERT INTO sys_user_role (user_id, role_id) VALUES
 (1, 1), (2, 2), (3, 3);
 
-INSERT INTO phone_realname (real_name, phone, department, scan_status, remark) VALUES
-('张三', '13800138001', '销售部', 2, '销售代表'),
-('李四', '13800138002', '技术部', 2, '后端工程师'),
-('王五', '13800138003', '运营部', 1, '无法识别人脸'),
-('赵六', '13800138004', '客服部', 3, '需多次识别'),
-('孙七', '13800138005', '市场部', 2, '市场专员');
+INSERT INTO phone_realname (real_name, colleague_status, colleague_name, scan_status, remark) VALUES
+('张三', 'active', '刘经理', 2, '销售代表'),
+('李四', 'active', '王总监', 2, '后端工程师'),
+('王五', 'resigned', '赵主管', 1, '无法识别人脸'),
+('赵六', 'active', '孙经理', 3, '需多次识别'),
+('孙七', 'resigned', '陈总监', 2, '市场专员');
 
 INSERT INTO phone_card (iccd, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, operator_type, remark) VALUES
 ('89860123456789001', 'XX科技有限公司', '13800138001', 1, '张三', 1, 1, 1, '销售部在用'),
@@ -211,7 +212,9 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('phone_operator', '4', '其他', 4),
 ('phone_agent', 'XX科技有限公司', 'XX科技有限公司', 1),
 ('phone_agent', 'YY通信服务中心', 'YY通信服务中心', 2),
-('phone_agent', 'ZZ网络科技', 'ZZ网络科技', 3);
+('phone_agent', 'ZZ网络科技', 'ZZ网络科技', 3),
+('colleague_status', 'active', '在职', 1),
+('colleague_status', 'resigned', '离职', 2);
 
 INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
 (100, '首页', '/home', 'HomeFilled', 0, 0, 1, NULL, 1),
