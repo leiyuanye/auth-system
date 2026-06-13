@@ -7,7 +7,7 @@ import java.util.Date;
 @Data
 public class PhoneCard {
     private Long id;
-    private String cardNumber;
+    private String iccd;
     private String agentName;
     private String phoneNumber;
     private Long realnameId;

@@ -97,7 +97,7 @@ CREATE TABLE phone_realname (
 DROP TABLE IF EXISTS phone_card;
 CREATE TABLE phone_card (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    card_number VARCHAR(64) NOT NULL,
+    iccd VARCHAR(64) NOT NULL,
     agent_name VARCHAR(128) DEFAULT NULL,
     phone_number VARCHAR(32) DEFAULT NULL,
     realname_id BIGINT DEFAULT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE phone_card (
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_card_number (card_number),
+    UNIQUE KEY uk_iccd (iccd),
     KEY idx_realname_id (realname_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -155,7 +155,7 @@ INSERT INTO phone_realname (real_name, phone, department, scan_status, remark) V
 ('赵六', '13800138004', '客服部', 3, '需多次识别'),
 ('孙七', '13800138005', '市场部', 2, '市场专员');
 
-INSERT INTO phone_card (card_number, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, operator_type, remark) VALUES
+INSERT INTO phone_card (iccd, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, operator_type, remark) VALUES
 ('89860123456789001', 'XX科技有限公司', '13800138001', 1, '张三', 1, 1, 1, '销售部在用'),
 ('89860123456789002', 'YY通信服务中心', '13800138002', 2, '李四', 1, 1, 2, '技术部在用'),
 ('89860123456789003', 'ZZ网络科技', '13800138003', 3, '王五', 1, 2, 3, '需二次实名'),

@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class PhoneCardExcelUtil {
 
-    private static final String[] HEADERS = {"卡号", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注"};
+    private static final String[] HEADERS = {"ICCID", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注"};
 
     /**
      * 生成Excel模板
@@ -52,9 +52,9 @@ public class PhoneCardExcelUtil {
             // 添加示例数据行
             Row exampleRow = sheet.createRow(1);
             exampleRow.createCell(0).setCellValue("89860012345678901234");
-            exampleRow.createCell(1).setCellValue("移动(1)/联通(2)/电信(3)/其他(4)");
-            exampleRow.createCell(2).setCellValue("在用(1)/备用(2)");
-            exampleRow.createCell(3).setCellValue("正常(1)/二次实名(2)/欠费(3)");
+            exampleRow.createCell(1).setCellValue("移动");
+            exampleRow.createCell(2).setCellValue("在用");
+            exampleRow.createCell(3).setCellValue("正常");
             exampleRow.createCell(4).setCellValue("XX科技有限公司");
             exampleRow.createCell(5).setCellValue("13800138000");
             exampleRow.createCell(6).setCellValue("张三");
@@ -94,7 +94,7 @@ public class PhoneCardExcelUtil {
 
             // 创建标题行
             Row headerRow = sheet.createRow(0);
-            String[] exportHeaders = {"ID", "卡号", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"};
+            String[] exportHeaders = {"ID", "ICCID", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"};
             for (int i = 0; i < exportHeaders.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(exportHeaders[i]);
@@ -108,7 +108,7 @@ public class PhoneCardExcelUtil {
                 PhoneCard card = cards.get(i);
                 Row row = sheet.createRow(i + 1);
                 row.createCell(0).setCellValue(card.getId() != null ? card.getId() : 0);
-                row.createCell(1).setCellValue(card.getCardNumber() != null ? card.getCardNumber() : "");
+                row.createCell(1).setCellValue(card.getIccd() != null ? card.getIccd() : "");
                 row.createCell(2).setCellValue(getOperatorTypeText(card.getOperatorType()));
                 row.createCell(3).setCellValue(getUsageStatusText(card.getUsageStatus()));
                 row.createCell(4).setCellValue(getCardStatusText(card.getCardStatus()));
@@ -141,11 +141,11 @@ public class PhoneCardExcelUtil {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                String cardNumber = getCellValue(row.getCell(0));
-                if (cardNumber == null || cardNumber.trim().isEmpty()) continue;
+                String iccd = getCellValue(row.getCell(0));
+                if (iccd == null || iccd.trim().isEmpty()) continue;
 
                 PhoneCard card = new PhoneCard();
-                card.setCardNumber(cardNumber.trim());
+                card.setIccd(iccd.trim());
                 card.setOperatorType(parseOperatorType(getCellValue(row.getCell(1))));
                 card.setUsageStatus(parseUsageStatus(getCellValue(row.getCell(2))));
                 card.setCardStatus(parseCardStatus(getCellValue(row.getCell(3))));
@@ -169,11 +169,34 @@ public class PhoneCardExcelUtil {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cell.getDateCellValue());
                 }
-                return String.valueOf((long) cell.getNumericCellValue());
+                double num = cell.getNumericCellValue();
+                if (num == Math.floor(num) && !Double.isInfinite(num)) {
+                    long longVal = (long) num;
+                    if (longVal <= 9_000_000_000_000_000_000L && longVal >= 0) {
+                        return String.valueOf(longVal);
+                    }
+                }
+                return new java.math.BigDecimal(String.valueOf(num)).toPlainString();
             case BOOLEAN:
                 return String.valueOf(cell.getBooleanCellValue());
             case FORMULA:
-                return cell.getCellFormula();
+                try {
+                    CellValue val = cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator().evaluate(cell);
+                    if (val != null && val.getCellType() == CellType.NUMERIC) {
+                        double fNum = val.getNumberValue();
+                        if (fNum == Math.floor(fNum) && !Double.isInfinite(fNum)) {
+                            long fLong = (long) fNum;
+                            if (fLong <= 9_000_000_000_000_000_000L && fLong >= 0) {
+                                return String.valueOf(fLong);
+                            }
+                        }
+                        return new java.math.BigDecimal(String.valueOf(fNum)).toPlainString();
+                    }
+                    if (val != null) return val.getStringValue();
+                    return cell.getCellFormula();
+                } catch (Exception e) {
+                    return cell.getCellFormula();
+                }
             default:
                 return null;
         }

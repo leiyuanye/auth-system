@@ -57,12 +57,12 @@ public class PhoneCardController {
 
     @PostMapping
     public Result<Map<String, Object>> add(@RequestBody PhoneCard card, HttpServletRequest request) {
-        if (card.getCardNumber() == null || card.getCardNumber().trim().isEmpty()) {
-            return Result.fail("卡号不能为空");
+        if (card.getIccd() == null || card.getIccd().trim().isEmpty()) {
+            return Result.fail("ICCID不能为空");
         }
         if (card.getCardStatus() == null) card.setCardStatus(1);
         int rows = cardMapper.insert(card);
-        logUtil.logAdd(MODULE_NAME, card.getId(), card.getCardNumber(), card, currentUser(request));
+        logUtil.logAdd(MODULE_NAME, card.getId(), card.getIccd(), card, currentUser(request));
         Map<String, Object> data = new HashMap<>();
         data.put("id", card.getId());
         return Result.ok(data);
@@ -74,7 +74,7 @@ public class PhoneCardController {
         card.setId(id);
         int rows = cardMapper.update(card);
         PhoneCard newCard = cardMapper.selectById(id);
-        logUtil.logUpdate(MODULE_NAME, id, card.getCardNumber() != null ? card.getCardNumber() : (oldCard != null ? oldCard.getCardNumber() : null), oldCard, newCard, currentUser(request));
+        logUtil.logUpdate(MODULE_NAME, id, card.getIccd() != null ? card.getIccd() : (oldCard != null ? oldCard.getIccd() : null), oldCard, newCard, currentUser(request));
         return Result.ok(null);
     }
 
@@ -82,7 +82,7 @@ public class PhoneCardController {
     public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
         PhoneCard oldCard = cardMapper.selectById(id);
         int rows = cardMapper.deleteById(id);
-        logUtil.logDelete(MODULE_NAME, id, oldCard != null ? oldCard.getCardNumber() : String.valueOf(id), oldCard, currentUser(request));
+        logUtil.logDelete(MODULE_NAME, id, oldCard != null ? oldCard.getIccd() : String.valueOf(id), oldCard, currentUser(request));
         return Result.ok(null);
     }
 
@@ -133,12 +133,12 @@ public class PhoneCardController {
                     if (card.getCardStatus() == null) card.setCardStatus(1);
                     if (card.getUsageStatus() == null) card.setUsageStatus(1);
                     cardMapper.insert(card);
-                    logUtil.logAdd(MODULE_NAME, card.getId(), card.getCardNumber(), card, currentUser(request));
+                    logUtil.logAdd(MODULE_NAME, card.getId(), card.getIccd(), card, currentUser(request));
                     successCount++;
                 } catch (Exception e) {
                     failCount++;
                     if (failMsg.length() < 200) {
-                        failMsg.append("卡号[").append(card.getCardNumber()).append("]导入失败: ").append(e.getMessage()).append("; ");
+                        failMsg.append("ICCID[").append(card.getIccd()).append("]导入失败: ").append(e.getMessage()).append("; ");
                     }
                 }
             }

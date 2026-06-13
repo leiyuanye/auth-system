@@ -38,7 +38,7 @@ public class OperateLogUtil {
         FIELD_LABEL.put("expireTime", "到期时间");
 
         // ----- 手机卡 (phone_card) -----
-        FIELD_LABEL.put("cardNumber", "卡号");
+        FIELD_LABEL.put("iccd", "ICCID");
         FIELD_LABEL.put("agentId", "代理商ID");
         FIELD_LABEL.put("agentName", "代理商");
         FIELD_LABEL.put("phoneNumber", "手机号");
