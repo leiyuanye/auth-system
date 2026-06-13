@@ -107,7 +107,7 @@ public class PhoneCardController {
             @RequestParam(required = false) Integer operatorType,
             @RequestParam(required = false) Integer usageStatus,
             @RequestParam(required = false) Integer cardStatus,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws java.io.UnsupportedEncodingException {
         List<PhoneCard> list = cardMapper.selectByCondition(keyword, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
         String filename = "手机卡数据_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -159,7 +159,7 @@ public class PhoneCardController {
      * 下载导入模板
      */
     @GetMapping("/template")
-    public StreamingResponseBody downloadTemplate(HttpServletResponse response) {
+    public StreamingResponseBody downloadTemplate(HttpServletResponse response) throws java.io.UnsupportedEncodingException {
         String filename = "手机卡导入模板.xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
