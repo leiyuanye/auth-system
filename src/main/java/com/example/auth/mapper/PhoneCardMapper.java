@@ -58,4 +58,15 @@ public interface PhoneCardMapper {
      * 返回: [{monthLabel: '2024-06', count: 5}, ...]
      */
     List<java.util.Map<String, Object>> monthlyExceptionProcess();
+
+    /**
+     * 按运营商分组统计实名人数量（realname_name 非空且不为 '未实名'）
+     * 返回: [{operatorType: 1, operatorLabel: '移动', count: 10}, ...]
+     */
+    List<java.util.Map<String, Object>> countRealnameByOperator();
+
+    /**
+     * 统计已实名手机卡总数（realname_name 非空且不为 '未实名'）
+     */
+    int countTotalRealname();
 }

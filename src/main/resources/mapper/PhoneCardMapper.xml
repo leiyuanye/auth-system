@@ -177,4 +177,27 @@
         LIMIT 12
     </select>
 
+    <select id="countRealnameByOperator" resultType="java.util.Map">
+        SELECT
+            pc.operator_type AS operatorType,
+            COALESCE(d.dict_value, '其他') AS operatorLabel,
+            COUNT(*) AS count
+        FROM phone_card pc
+        LEFT JOIN sys_dict d
+          ON d.dict_type = 'phone_operator' AND CAST(d.dict_key AS SIGNED) = pc.operator_type
+        WHERE pc.realname_name IS NOT NULL
+          AND pc.realname_name != ''
+          AND pc.realname_name != '未实名'
+        GROUP BY pc.operator_type, d.dict_value
+        ORDER BY count DESC
+    </select>
+
+    <select id="countTotalRealname" resultType="int">
+        SELECT COUNT(*)
+        FROM phone_card
+        WHERE realname_name IS NOT NULL
+          AND realname_name != ''
+          AND realname_name != '未实名'
+    </select>
+
 </mapper>

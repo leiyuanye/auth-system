@@ -54,6 +54,12 @@ public class StatsController {
         List<Map<String, Object>> monthly = phoneCardMapper.monthlyExceptionProcess();
         data.put("monthlyExceptionProcess", monthly);
 
+        // 运营商维度实名人数量
+        List<Map<String, Object>> realnameDist = phoneCardMapper.countRealnameByOperator();
+        int totalRealname = phoneCardMapper.countTotalRealname();
+        data.put("realnameByOperator", realnameDist);
+        data.put("totalRealnameCards", totalRealname);
+
         return Result.ok(data);
     }
 
