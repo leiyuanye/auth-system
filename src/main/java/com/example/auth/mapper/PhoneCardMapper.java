@@ -20,7 +20,6 @@ public interface PhoneCardMapper {
 
     List<PhoneCard> selectByCondition(
             @Param("keyword") String keyword,
-            @Param("cardType") Integer cardType,
             @Param("usageStatus") Integer usageStatus,
             @Param("cardStatus") Integer cardStatus,
             @Param("operatorType") Integer operatorType,
@@ -30,7 +29,6 @@ public interface PhoneCardMapper {
 
     int countByCondition(
             @Param("keyword") String keyword,
-            @Param("cardType") Integer cardType,
             @Param("usageStatus") Integer usageStatus,
             @Param("cardStatus") Integer cardStatus,
             @Param("operatorType") Integer operatorType);

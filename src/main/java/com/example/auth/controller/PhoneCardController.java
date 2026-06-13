@@ -37,7 +37,6 @@ public class PhoneCardController {
     @GetMapping
     public Result<PageResult<PhoneCard>> list(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer cardType,
             @RequestParam(required = false) Integer operatorType,
             @RequestParam(required = false) Integer usageStatus,
             @RequestParam(required = false) Integer cardStatus,
@@ -45,8 +44,8 @@ public class PhoneCardController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, operatorType, groupBy, offset, size);
-        int total = cardMapper.countByCondition(keyword, cardType, usageStatus, cardStatus, operatorType);
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, usageStatus, cardStatus, operatorType, groupBy, offset, size);
+        int total = cardMapper.countByCondition(keyword, usageStatus, cardStatus, operatorType);
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
@@ -62,7 +61,6 @@ public class PhoneCardController {
             return Result.fail("卡号不能为空");
         }
         if (card.getCardStatus() == null) card.setCardStatus(1);
-        if (card.getCardType() == null) card.setCardType(1);
         int rows = cardMapper.insert(card);
         logUtil.logAdd(MODULE_NAME, card.getId(), card.getCardNumber(), card, currentUser(request));
         Map<String, Object> data = new HashMap<>();
@@ -102,12 +100,11 @@ public class PhoneCardController {
     @GetMapping("/export")
     public void exportExcel(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer cardType,
             @RequestParam(required = false) Integer operatorType,
             @RequestParam(required = false) Integer usageStatus,
             @RequestParam(required = false) Integer cardStatus,
             HttpServletResponse response) throws Exception {
-        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
         PhoneCardExcelUtil.exportExcel(list, response);
     }
 
@@ -134,7 +131,6 @@ public class PhoneCardController {
             for (PhoneCard card : cards) {
                 try {
                     if (card.getCardStatus() == null) card.setCardStatus(1);
-                    if (card.getCardType() == null) card.setCardType(1);
                     if (card.getUsageStatus() == null) card.setUsageStatus(1);
                     cardMapper.insert(card);
                     logUtil.logAdd(MODULE_NAME, card.getId(), card.getCardNumber(), card, currentUser(request));

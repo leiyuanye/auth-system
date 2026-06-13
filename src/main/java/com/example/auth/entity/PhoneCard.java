@@ -14,7 +14,6 @@ public class PhoneCard {
     private String realnameName;
     private Integer usageStatus;
     private Integer cardStatus;
-    private Integer cardType;
     private Integer operatorType;
     private String remark;
 

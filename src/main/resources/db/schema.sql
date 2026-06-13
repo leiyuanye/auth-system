@@ -104,7 +104,6 @@ CREATE TABLE phone_card (
     realname_name VARCHAR(64) DEFAULT NULL,
     usage_status TINYINT DEFAULT 1,
     card_status TINYINT DEFAULT 1,
-    card_type TINYINT DEFAULT 1,
     operator_type TINYINT DEFAULT 1,
     remark VARCHAR(255) DEFAULT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -156,15 +155,15 @@ INSERT INTO phone_realname (real_name, phone, department, scan_status, remark) V
 ('赵六', '13800138004', '客服部', 3, '需多次识别'),
 ('孙七', '13800138005', '市场部', 2, '市场专员');
 
-INSERT INTO phone_card (card_number, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, card_type, operator_type, remark) VALUES
-('89860123456789001', 'XX科技有限公司', '13800138001', 1, '张三', 1, 1, 1, 1, '销售部在用'),
-('89860123456789002', 'YY通信服务中心', '13800138002', 2, '李四', 1, 1, 1, 2, '技术部在用'),
-('89860123456789003', 'ZZ网络科技', '13800138003', 3, '王五', 1, 2, 1, 3, '需二次实名'),
-('89860123456789004', 'XX科技有限公司', '13800138004', 4, '赵六', 1, 3, 1, 1, '欠费待处理'),
-('89860123456789005', 'YY通信服务中心', '13800138005', 5, '孙七', 1, 1, 2, 2, '市场部在用'),
-('89860987654321001', 'XX科技有限公司', '13811112222', NULL, NULL, 2, 1, 1, 1, '库存备用卡-01'),
-('89860987654321002', 'YY通信服务中心', '13811113333', NULL, NULL, 2, 1, 2, 3, '库存备用卡-02'),
-('89860987654321003', 'ZZ网络科技', '13811114444', NULL, NULL, 2, 2, 1, 2, '需二次实名的备用卡');
+INSERT INTO phone_card (card_number, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, operator_type, remark) VALUES
+('89860123456789001', 'XX科技有限公司', '13800138001', 1, '张三', 1, 1, 1, '销售部在用'),
+('89860123456789002', 'YY通信服务中心', '13800138002', 2, '李四', 1, 1, 2, '技术部在用'),
+('89860123456789003', 'ZZ网络科技', '13800138003', 3, '王五', 1, 2, 3, '需二次实名'),
+('89860123456789004', 'XX科技有限公司', '13800138004', 4, '赵六', 1, 3, 1, '欠费待处理'),
+('89860123456789005', 'YY通信服务中心', '13800138005', 5, '孙七', 1, 1, 2, '市场部在用'),
+('89860987654321001', 'XX科技有限公司', '13811112222', NULL, NULL, 2, 1, 1, '库存备用卡-01'),
+('89860987654321002', 'YY通信服务中心', '13811113333', NULL, NULL, 2, 1, 3, '库存备用卡-02'),
+('89860987654321003', 'ZZ网络科技', '13811114444', NULL, NULL, 2, 2, 2, '需二次实名的备用卡');
 
 INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, remote_account, remote_pwd, backend_account, backend_pwd, remark, expire_time) VALUES
 ('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, 'root', 'dbRoot2026', 'admin', 'admin@db', '主数据库服务器', '2026-12-31 23:59:59'),
@@ -201,8 +200,6 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('server_status', '2', '维护中', 2),
 ('server_status', '3', '已下线', 3),
 ('server_status', '4', '到期', 4),
-('phone_card_type', '1', '普通卡', 1),
-('phone_card_type', '2', '物联卡', 2),
 ('phone_usage_status', '1', '使用中', 1),
 ('phone_usage_status', '2', '库存', 2),
 ('phone_card_status', '1', '正常', 1),

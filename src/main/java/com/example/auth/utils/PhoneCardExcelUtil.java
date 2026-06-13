@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class PhoneCardExcelUtil {
 
-    private static final String[] HEADERS = {"卡号", "卡类型", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注"};
+    private static final String[] HEADERS = {"卡号", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注"};
 
     /**
      * 生成Excel模板
@@ -52,14 +52,13 @@ public class PhoneCardExcelUtil {
             // 添加示例数据行
             Row exampleRow = sheet.createRow(1);
             exampleRow.createCell(0).setCellValue("89860012345678901234");
-            exampleRow.createCell(1).setCellValue("普通卡(1)/物联卡(2)");
-            exampleRow.createCell(2).setCellValue("移动(1)/联通(2)/电信(3)/其他(4)");
-            exampleRow.createCell(3).setCellValue("在用(1)/备用(2)");
-            exampleRow.createCell(4).setCellValue("正常(1)/二次实名(2)/欠费(3)");
-            exampleRow.createCell(5).setCellValue("XX科技有限公司");
-            exampleRow.createCell(6).setCellValue("13800138000");
-            exampleRow.createCell(7).setCellValue("张三");
-            exampleRow.createCell(8).setCellValue("备注信息");
+            exampleRow.createCell(1).setCellValue("移动(1)/联通(2)/电信(3)/其他(4)");
+            exampleRow.createCell(2).setCellValue("在用(1)/备用(2)");
+            exampleRow.createCell(3).setCellValue("正常(1)/二次实名(2)/欠费(3)");
+            exampleRow.createCell(4).setCellValue("XX科技有限公司");
+            exampleRow.createCell(5).setCellValue("13800138000");
+            exampleRow.createCell(6).setCellValue("张三");
+            exampleRow.createCell(7).setCellValue("备注信息");
 
             // 设置响应头
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -95,7 +94,7 @@ public class PhoneCardExcelUtil {
 
             // 创建标题行
             Row headerRow = sheet.createRow(0);
-            String[] exportHeaders = {"ID", "卡号", "卡类型", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"};
+            String[] exportHeaders = {"ID", "卡号", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"};
             for (int i = 0; i < exportHeaders.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(exportHeaders[i]);
@@ -110,16 +109,15 @@ public class PhoneCardExcelUtil {
                 Row row = sheet.createRow(i + 1);
                 row.createCell(0).setCellValue(card.getId() != null ? card.getId() : 0);
                 row.createCell(1).setCellValue(card.getCardNumber() != null ? card.getCardNumber() : "");
-                row.createCell(2).setCellValue(getCardTypeText(card.getCardType()));
-                row.createCell(3).setCellValue(getOperatorTypeText(card.getOperatorType()));
-                row.createCell(4).setCellValue(getUsageStatusText(card.getUsageStatus()));
-                row.createCell(5).setCellValue(getCardStatusText(card.getCardStatus()));
-                row.createCell(6).setCellValue(card.getAgentName() != null ? card.getAgentName() : "");
-                row.createCell(7).setCellValue(card.getPhoneNumber() != null ? card.getPhoneNumber() : "");
-                row.createCell(8).setCellValue(card.getRealnameName() != null ? card.getRealnameName() : "");
-                row.createCell(9).setCellValue(card.getRemark() != null ? card.getRemark() : "");
-                row.createCell(10).setCellValue(card.getCreateTime() != null ? sdf.format(card.getCreateTime()) : "");
-                row.createCell(11).setCellValue(card.getUpdateTime() != null ? sdf.format(card.getUpdateTime()) : "");
+                row.createCell(2).setCellValue(getOperatorTypeText(card.getOperatorType()));
+                row.createCell(3).setCellValue(getUsageStatusText(card.getUsageStatus()));
+                row.createCell(4).setCellValue(getCardStatusText(card.getCardStatus()));
+                row.createCell(5).setCellValue(card.getAgentName() != null ? card.getAgentName() : "");
+                row.createCell(6).setCellValue(card.getPhoneNumber() != null ? card.getPhoneNumber() : "");
+                row.createCell(7).setCellValue(card.getRealnameName() != null ? card.getRealnameName() : "");
+                row.createCell(8).setCellValue(card.getRemark() != null ? card.getRemark() : "");
+                row.createCell(9).setCellValue(card.getCreateTime() != null ? sdf.format(card.getCreateTime()) : "");
+                row.createCell(10).setCellValue(card.getUpdateTime() != null ? sdf.format(card.getUpdateTime()) : "");
             }
 
             // 设置响应头
@@ -148,14 +146,13 @@ public class PhoneCardExcelUtil {
 
                 PhoneCard card = new PhoneCard();
                 card.setCardNumber(cardNumber.trim());
-                card.setCardType(parseCardType(getCellValue(row.getCell(1))));
-                card.setOperatorType(parseOperatorType(getCellValue(row.getCell(2))));
-                card.setUsageStatus(parseUsageStatus(getCellValue(row.getCell(3))));
-                card.setCardStatus(parseCardStatus(getCellValue(row.getCell(4))));
-                card.setAgentName(getCellValue(row.getCell(5)));
-                card.setPhoneNumber(getCellValue(row.getCell(6)));
-                card.setRealnameName(getCellValue(row.getCell(7)));
-                card.setRemark(getCellValue(row.getCell(8)));
+                card.setOperatorType(parseOperatorType(getCellValue(row.getCell(1))));
+                card.setUsageStatus(parseUsageStatus(getCellValue(row.getCell(2))));
+                card.setCardStatus(parseCardStatus(getCellValue(row.getCell(3))));
+                card.setAgentName(getCellValue(row.getCell(4)));
+                card.setPhoneNumber(getCellValue(row.getCell(5)));
+                card.setRealnameName(getCellValue(row.getCell(6)));
+                card.setRemark(getCellValue(row.getCell(7)));
 
                 cards.add(card);
             }
@@ -179,18 +176,6 @@ public class PhoneCardExcelUtil {
                 return cell.getCellFormula();
             default:
                 return null;
-        }
-    }
-
-    private static Integer parseCardType(String value) {
-        if (value == null) return 1;
-        value = value.trim();
-        if (value.contains("普通卡") || value.equals("1")) return 1;
-        if (value.contains("物联卡") || value.equals("2")) return 2;
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 1;
         }
     }
 
@@ -230,15 +215,6 @@ public class PhoneCardExcelUtil {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return 1;
-        }
-    }
-
-    private static String getCardTypeText(Integer value) {
-        if (value == null) return "-";
-        switch (value) {
-            case 1: return "普通卡";
-            case 2: return "物联卡";
-            default: return "-";
         }
     }
 
