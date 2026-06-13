@@ -179,17 +179,19 @@ public class PhoneCardExcelUtil {
     }
 
     /**
-     * 统一按"文本"方式读取单元格值,避免ICCID这类长数字被精度丢失
-     * - 若单元格本身是STRING类型,直接取值(最可靠)
-     * - 若单元格是NUMERIC类型,先按单元格格式化文本获取,科学计数法再转成纯数字
-     * - 公式类型:先求值再按上述规则处理
+     * 统一按"文本"方式读取单元格值:
+     * 1) STRING 类型 → getStringCellValue() 直接取(最可靠,文本格式的20位ICCID可完整获取)
+     * 2) NUMERIC 类型 → 先 DataFormatter.formatCellValue() 读取显示文本,再把科学计数法/小数转纯整数
+     *    (警告:若原单元格本就是"常规/数字"格式,Excel内部已按double存储,末尾3-5位精度必然丢失,
+     *    必须改为文本格式才能正确读取完整ICCID)
+     * 3) FORMULA 类型 → 先求值再按上述规则处理
      */
     private static String safeGetCellValue(Cell cell, DataFormatter formatter, FormulaEvaluator evaluator) {
         if (cell == null) return null;
         try {
             CellType cellType = cell.getCellType();
 
-            // 公式单元格:先求结果类型再处理
+            // 公式单元格:先求结果类型
             if (cellType == CellType.FORMULA) {
                 try {
                     CellValue cv = evaluator.evaluate(cell);
@@ -201,48 +203,60 @@ public class PhoneCardExcelUtil {
 
             String value;
             if (cellType == CellType.STRING) {
-                // 文本类型:直接取(最可靠,ICCID若存为文本就能完整获取)
+                // 文本类型:最可靠,直接getStringCellValue,文本格式的ICCID一定能完整读取
                 value = cell.getStringCellValue();
             } else if (cellType == CellType.NUMERIC) {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cell.getDateCellValue());
                 } else {
-                    // 先用formatter获取"显示格式"(可能是8.986E+19这种科学计数法)
+                    // 数字类型:先用 DataFormatter 读取显示格式
                     String formatted = formatter.formatCellValue(cell, evaluator);
-                    // 如果包含科学计数法,用BigDecimal转成普通数字文本(但末尾精度可能因double而丢失)
-                    if (formatted != null && (formatted.contains("E") || formatted.contains("e"))) {
-                        try {
-                            value = new java.math.BigDecimal(formatted).toPlainString();
-                        } catch (NumberFormatException e) {
+                    if (formatted != null && !formatted.trim().isEmpty()) {
+                        // 若为科学计数法(如 8.986E+19),用 BigDecimal 转为纯数字文本
+                        // (注意:底层本就是double存储,超15位数字的末尾精度必然已丢失,
+                        //  这是Excel本身问题,本代码只能尽量把可用部分正确取出)
+                        if (formatted.contains("E") || formatted.contains("e")) {
+                            try {
+                                value = new java.math.BigDecimal(formatted).toPlainString();
+                            } catch (NumberFormatException e) {
+                                value = formatted;
+                            }
+                        } else {
                             value = formatted;
                         }
                     } else {
-                        value = formatted;
+                        // 兜底:用 cell.getNumericCellValue() + BigDecimal 转文本
+                        value = new java.math.BigDecimal(Double.toString(cell.getNumericCellValue())).toPlainString();
                     }
-                    // 回退:若formatter没取到,用cell.getNumericCellValue()+BigDecimal兜底
-                    if (value == null || value.trim().isEmpty()) {
-                        value = new java.math.BigDecimal(String.valueOf(cell.getNumericCellValue())).toPlainString();
+
+                    // 去除数字末尾 ".0" 等小数位(保留整数形式),避免 ICCID 被写成 "1234567890.0"
+                    if (value != null && value.contains(".") && value.matches("\\d+\\.0*")) {
+                        value = value.substring(0, value.indexOf('.'));
                     }
                 }
             } else if (cellType == CellType.BOOLEAN) {
                 value = String.valueOf(cell.getBooleanCellValue());
             } else {
-                // 其它类型:用formatter兜底
+                // 其它类型:用 DataFormatter 兜底
                 value = formatter.formatCellValue(cell, evaluator);
             }
 
-            // 清理:去除千位分隔符和多余空格
+            // 最终清理:去除千位分隔符、多余空格、小数点等,保留纯数字
             if (value != null) {
                 value = value.trim();
-                if (value.matches("[0-9,\\s.]+") && value.contains(",")) {
+                // 数字相关字符(含逗号/空格/点号)的统一清理
+                if (value.matches("[0-9,\\s.]+")) {
                     value = value.replace(",", "").replace(" ", "");
+                    // 若清理后是纯整数但带 ".0", 去掉小数点
+                    if (value.contains(".") && value.matches("\\d+\\.0*")) {
+                        value = value.substring(0, value.indexOf('.'));
+                    }
                 }
                 return value.isEmpty() ? null : value;
             }
             return null;
         } catch (Exception e) {
             try {
-                // 异常回退:尝试直接读取原始字符串
                 return cell.getStringCellValue().trim();
             } catch (Exception ignored) {
                 return null;

@@ -110,6 +110,9 @@ public class PhoneCardController {
 
     /**
      * 导入手机卡数据
+     * 注意:ICCID是19-20位长数字,Excel单元格必须为"文本"格式才能完整存储;
+     * "常规/数字"格式会因double精度(约15位)丢失末尾3-5位,导致不同ICCID被解析为相同值,
+     * 最终只剩一条导入成功。请使用本系统提供的导入模板(ICCID列已设为文本格式)。
      */
     @PostMapping("/import")
     public Result<Map<String, Object>> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
@@ -123,8 +126,9 @@ public class PhoneCardController {
         try {
             List<PhoneCard> cards = PhoneCardExcelUtil.importExcel(file.getInputStream());
             if (cards.isEmpty()) {
-                return Result.fail("文件中没有有效数据(请确认ICCID列有值)");
+                return Result.fail("文件中没有有效数据(请确认ICCID列有值,且ICCID列格式为文本)");
             }
+
             int successCount = 0;
             int failCount = 0;
             StringBuilder failMsg = new StringBuilder();
@@ -139,7 +143,7 @@ public class PhoneCardController {
                 iccd = iccd.trim();
                 card.setIccd(iccd);
 
-                // 1. 先检测Excel内部的重复ICCID
+                // 1. 先检测文件内的重复ICCID(若因Excel数字精度丢失,不同ICCID会解析为相同值)
                 if (seenIccids.contains(iccd)) {
                     duplicateInFile.add(iccd);
                     failCount++;
@@ -156,20 +160,26 @@ public class PhoneCardController {
                 } catch (Exception e) {
                     failCount++;
                     String msg = e.getMessage() == null ? "未知错误" : e.getMessage();
-                    // 判断是否为唯一键冲突(数据库已存在相同ICCID)
-                    boolean isDupInDb = msg.contains("Duplicate") || msg.contains("duplicate") || msg.contains("uk_iccd") || msg.contains("UNIQUE");
+                    // 区分:数据库唯一键冲突(ICCID已存在) vs 其它错误
+                    boolean isDupInDb = msg.contains("Duplicate") || msg.contains("duplicate")
+                            || msg.toLowerCase().contains("unique") || msg.contains("uk_iccd");
                     if (isDupInDb) {
                         duplicateInDb.add(iccd);
                     } else {
-                        otherErrors.add(iccd + "(" + msg + ")");
+                        otherErrors.add(iccd + "[" + msg.substring(0, Math.min(msg.length(), 80)) + "]");
                     }
                 }
             }
 
-            // 组织详细报告
+            // 组装详细报告(前端展示给用户,帮助排查"为什么只导入一条")
             if (failCount > 0) {
                 if (!duplicateInFile.isEmpty()) {
-                    failMsg.append("文件内重复ICCID[").append(duplicateInFile.size()).append("]条:");
+                    failMsg.append("文件内重复(ICCID相同)[").append(duplicateInFile.size()).append("]条:");
+                    // 若重复条目过多(>5),极可能是ICCID列为"数字"格式导致精度丢失,
+                    // 不同ICCID被解析为相同值(如末尾3位统一成000/999)
+                    if (duplicateInFile.size() > 5) {
+                        failMsg.append("检测到大量重复!高度怀疑ICCID列为数字格式导致精度丢失,请改为文本格式或使用系统模板;前5个:");
+                    }
                     failMsg.append(String.join(", ", duplicateInFile.subList(0, Math.min(5, duplicateInFile.size()))));
                     if (duplicateInFile.size() > 5) failMsg.append("...");
                     failMsg.append("; ");
