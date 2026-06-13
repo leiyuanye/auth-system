@@ -5,10 +5,13 @@ import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
 import com.example.auth.entity.PhoneCard;
 import com.example.auth.mapper.PhoneCardMapper;
+import com.example.auth.utils.PhoneCardExcelUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,5 +85,75 @@ public class PhoneCardController {
         int rows = cardMapper.deleteById(id);
         logUtil.logDelete(MODULE_NAME, id, oldCard != null ? oldCard.getCardNumber() : String.valueOf(id), oldCard, currentUser(request));
         return Result.ok(null);
+    }
+
+    /**
+     * 下载导入模板
+     */
+    @GetMapping("/template")
+    public void downloadTemplate(HttpServletResponse response) throws Exception {
+        PhoneCardExcelUtil.generateTemplate(response);
+    }
+
+    /**
+     * 导出手机卡数据
+     */
+    @GetMapping("/export")
+    public void exportExcel(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer cardType,
+            @RequestParam(required = false) Integer usageStatus,
+            @RequestParam(required = false) Integer cardStatus,
+            HttpServletResponse response) throws Exception {
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, null, 0, Integer.MAX_VALUE);
+        PhoneCardExcelUtil.exportExcel(list, response);
+    }
+
+    /**
+     * 导入手机卡数据
+     */
+    @PostMapping("/import")
+    public Result<Map<String, Object>> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        if (file.isEmpty()) {
+            return Result.fail("请选择要导入的文件");
+        }
+        String filename = file.getOriginalFilename();
+        if (filename == null || (!filename.endsWith(".xlsx") && !filename.endsWith(".xls"))) {
+            return Result.fail("请上传Excel文件(.xlsx或.xls格式)");
+        }
+        try {
+            List<PhoneCard> cards = PhoneCardExcelUtil.importExcel(file.getInputStream());
+            if (cards.isEmpty()) {
+                return Result.fail("文件中没有有效数据");
+            }
+            int successCount = 0;
+            int failCount = 0;
+            StringBuilder failMsg = new StringBuilder();
+            for (PhoneCard card : cards) {
+                try {
+                    if (card.getCardStatus() == null) card.setCardStatus(1);
+                    if (card.getCardType() == null) card.setCardType(1);
+                    if (card.getUsageStatus() == null) card.setUsageStatus(1);
+                    cardMapper.insert(card);
+                    logUtil.logAdd(MODULE_NAME, card.getId(), card.getCardNumber(), card, currentUser(request));
+                    successCount++;
+                } catch (Exception e) {
+                    failCount++;
+                    if (failMsg.length() < 200) {
+                        failMsg.append("卡号[").append(card.getCardNumber()).append("]导入失败: ").append(e.getMessage()).append("; ");
+                    }
+                }
+            }
+            Map<String, Object> data = new HashMap<>();
+            data.put("successCount", successCount);
+            data.put("failCount", failCount);
+            data.put("total", cards.size());
+            if (failCount > 0) {
+                data.put("message", failMsg.toString());
+            }
+            return Result.ok(data);
+        } catch (Exception e) {
+            return Result.fail("导入失败: " + e.getMessage());
+        }
     }
 }
