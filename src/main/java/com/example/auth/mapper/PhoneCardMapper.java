@@ -6,6 +6,7 @@ import com.example.auth.dto.OperatorCountItem;
 import com.example.auth.dto.RealnameDetailItem;
 import com.example.auth.dto.StatusCountItem;
 import com.example.auth.entity.PhoneCard;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
