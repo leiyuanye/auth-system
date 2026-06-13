@@ -191,6 +191,21 @@
         ORDER BY count DESC
     </select>
 
+    <select id="countByRealnameWithOperator" resultType="java.util.Map">
+        SELECT
+            realname_name AS realnameName,
+            COUNT(*) AS totalCount,
+            SUM(CASE WHEN operator_type = 1 THEN 1 ELSE 0 END) AS mobileCount,
+            SUM(CASE WHEN operator_type = 2 THEN 1 ELSE 0 END) AS unicomCount,
+            SUM(CASE WHEN operator_type = 3 THEN 1 ELSE 0 END) AS telecomCount,
+            SUM(CASE WHEN operator_type = 4 THEN 1 ELSE 0 END) AS otherCount
+        FROM phone_card
+        WHERE realname_id IS NOT NULL
+           OR (realname_name IS NOT NULL AND realname_name != '' AND realname_name != '未实名')
+        GROUP BY realname_name
+        ORDER BY totalCount DESC
+    </select>
+
     <select id="countTotalRealname" resultType="int">
         SELECT COUNT(*)
         FROM phone_card

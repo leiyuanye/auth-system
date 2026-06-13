@@ -66,7 +66,13 @@ public interface PhoneCardMapper {
     List<java.util.Map<String, Object>> countRealnameByOperator();
 
     /**
-     * 统计已实名手机卡总数（realname_name 非空且不为 '未实名'）
+     * 按实名人分组统计：每个实名人共实名多少张 + 各运营商分别多少张
+     * 返回: [{ realnameName: '张三', totalCount: 3, mobileCount: 2, unicomCount: 1, telecomCount: 0, otherCount: 0 }, ...]
+     */
+    List<java.util.Map<String, Object>> countByRealnameWithOperator();
+
+    /**
+     * 统计已实名手机卡总数（realname_id 非空 或 realname_name 有意义）
      */
     int countTotalRealname();
 }

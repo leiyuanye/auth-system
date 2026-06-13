@@ -60,6 +60,9 @@ public class StatsController {
         data.put("realnameByOperator", realnameDist);
         data.put("totalRealnameCards", totalRealname);
 
+        // 每个实名人 × 运营商交叉统计
+        data.put("realnameWithOperatorTable", phoneCardMapper.countByRealnameWithOperator());
+
         return Result.ok(data);
     }
 
