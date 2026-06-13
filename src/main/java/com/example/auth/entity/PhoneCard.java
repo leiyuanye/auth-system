@@ -1,5 +1,6 @@
 package com.example.auth.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
 
@@ -13,10 +14,13 @@ public class PhoneCard {
     private Long realnameId;
     private String realnameName;
     private String department;
-    private String package_;
     private Integer cardStatus;
     private Integer cardType;
     private String remark;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }

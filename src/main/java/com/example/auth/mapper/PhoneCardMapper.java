@@ -22,6 +22,7 @@ public interface PhoneCardMapper {
             @Param("keyword") String keyword,
             @Param("cardType") Integer cardType,
             @Param("cardStatus") Integer cardStatus,
+            @Param("groupBy") String groupBy,
             @Param("offset") Integer offset,
             @Param("limit") Integer limit);
 

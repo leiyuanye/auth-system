@@ -36,10 +36,11 @@ public class PhoneCardController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer cardType,
             @RequestParam(required = false) Integer cardStatus,
+            @RequestParam(required = false) String groupBy,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, cardStatus, offset, size);
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, cardStatus, groupBy, offset, size);
         int total = cardMapper.countByCondition(keyword, cardType, cardStatus);
         return Result.ok(new PageResult<>(total, list, page, size));
     }

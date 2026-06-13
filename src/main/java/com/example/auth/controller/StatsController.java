@@ -117,7 +117,7 @@ public class StatsController {
         data.put("runningServers", runningServers);
         data.put("warningServers", expiredServers);
 
-        List<Map<String, Object>> monthlyCardTrend = phoneCardMapper.selectByCondition(null, null, null, 0, 10000)
+        List<Map<String, Object>> monthlyCardTrend = phoneCardMapper.selectByCondition(null, null, null, null, 0, 10000)
                 .stream()
                 .filter(c -> c.getCreateTime() != null)
                 .collect(java.util.stream.Collectors.groupingBy(
