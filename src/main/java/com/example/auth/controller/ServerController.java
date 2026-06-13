@@ -6,7 +6,7 @@ import com.example.auth.common.Result;
 import com.example.auth.entity.Server;
 import com.example.auth.mapper.ServerMapper;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -260,7 +260,7 @@ public class ServerController {
             return Result.fail("仅支持 .xlsx 或 .xls 格式的 Excel 文件");
         }
         try {
-            Workbook wb = new Workbook.Factory().create(file.getInputStream());
+            Workbook wb = WorkbookFactory.create(file.getInputStream());
             Sheet sheet = wb.getSheetAt(0);
             int startRow = 1; // 第0行是表头，从第1行开始读数据
             int imported = 0;
