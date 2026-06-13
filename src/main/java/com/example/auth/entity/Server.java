@@ -1,5 +1,6 @@
 package com.example.auth.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.util.Date;
 
@@ -20,6 +21,10 @@ public class Server {
     private String stockStatus;   // 库存状态（备用服务器用）: 库存/已借出/报废
     private Integer cardType;     // 类型标识: 1=在用 2=备用
     private String remark;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date expireTime;      // 到期时间
 }
