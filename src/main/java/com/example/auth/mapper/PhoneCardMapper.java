@@ -36,8 +36,6 @@ public interface PhoneCardMapper {
     // ==================== 统计用 ====================
     int countTotal();
 
-    int countByCardType(@Param("cardType") Integer cardType);
-
     int countByUsageStatus(@Param("usageStatus") Integer usageStatus);
 
     int countByCardStatus(@Param("cardStatus") Integer cardStatus);

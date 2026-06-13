@@ -46,7 +46,7 @@ public class OperateLogUtil {
         FIELD_LABEL.put("realnameName", "实名人");
         FIELD_LABEL.put("usageStatus", "使用状态");
         FIELD_LABEL.put("cardStatus", "状态");
-        FIELD_LABEL.put("cardType", "卡类型");
+        FIELD_LABEL.put("operatorType", "运营商");
 
         // ----- 代理商 (phone_agent) -----
         FIELD_LABEL.put("agentName", "代理商名称");
@@ -104,11 +104,13 @@ public class OperateLogUtil {
         cardStatusMap.put("3", "欠费");
         FIELD_VALUE_LABEL.put("cardStatus", cardStatusMap);
 
-        // 手机卡类型：具体含义可在数据字典 phone_card_type 中维护
-        Map<String, String> cardTypeMap = new HashMap<>();
-        cardTypeMap.put("1", "普通卡");
-        cardTypeMap.put("2", "物联卡");
-        FIELD_VALUE_LABEL.put("cardType", cardTypeMap);
+        // 手机卡运营商：1=移动, 2=联通, 3=电信, 4=其他
+        Map<String, String> operatorTypeMap = new HashMap<>();
+        operatorTypeMap.put("1", "移动");
+        operatorTypeMap.put("2", "联通");
+        operatorTypeMap.put("3", "电信");
+        operatorTypeMap.put("4", "其他");
+        FIELD_VALUE_LABEL.put("operatorType", operatorTypeMap);
 
         // 使用状态: 1=使用中, 2=库存
         Map<String, String> usageStatusMap = new HashMap<>();
