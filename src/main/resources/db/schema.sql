@@ -305,18 +305,27 @@ CREATE TABLE we_corp (
     contact_valid_date DATE DEFAULT NULL,          -- 外部联系人有效期
     creator VARCHAR(128) DEFAULT NULL,             -- 主体创建人
     phone VARCHAR(32) DEFAULT NULL,                -- 手机号码
+    corp_status VARCHAR(32) DEFAULT 'active',      -- 主体状态（字典：正常/注销/冻结）
+    legal_name VARCHAR(64) DEFAULT NULL,            -- 法人姓名
+    legal_id_card VARCHAR(32) DEFAULT NULL,        -- 法人身份证号
+    legal_phone VARCHAR(32) DEFAULT NULL,          -- 法人联系电话
+    register_capital VARCHAR(64) DEFAULT NULL,     -- 注册资本
+    register_date DATE DEFAULT NULL,               -- 注册日期
+    business_scope VARCHAR(1024) DEFAULT NULL,     -- 经营范围
+    register_address VARCHAR(512) DEFAULT NULL,    -- 注册地址
     remark VARCHAR(512) DEFAULT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT NULL,
     PRIMARY KEY (id),
     KEY idx_subject_short (subject_short),
-    KEY idx_customer_type (customer_type)
+    KEY idx_customer_type (customer_type),
+    KEY idx_corp_status (corp_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO we_corp (subject_short, subject_full, customer_type, cert_expire, quota_total, quota_used, contact_valid_date, creator, phone, remark) VALUES
-('科技A', '科技A有限公司', '优质客户,战略客户', '2026-12-31', 5000, 1280, '2026-12-31', '张三', '13800138001', '战略合作客户'),
-('电商B', '电商B集团股份有限公司', '优质客户', '2027-06-30', 10000, 8700, '2027-06-30', '李四', '13800138002', '电商行业大客户'),
-('教育C', '教育C科技公司', '普通客户', '2025-10-15', 2000, 500, '2025-10-15', '王五', '13800138003', '教育行业客户');
+INSERT INTO we_corp (subject_short, subject_full, customer_type, cert_expire, quota_total, quota_used, contact_valid_date, creator, phone, corp_status, legal_name, legal_id_card, legal_phone, register_capital, register_date, business_scope, register_address, remark) VALUES
+('科技A', '科技A有限公司', '优质客户,战略客户', '2026-12-31', 5000, 1280, '2026-12-31', '张三', '13800138001', 'active', '马建国', '110101199001011234', '13900139001', '5000万', '2018-05-12', '信息科技、软件开发、企业管理咨询', '北京市海淀区中关村大街1号', '战略合作客户'),
+('电商B', '电商B集团股份有限公司', '优质客户', '2027-06-30', 10000, 8700, '2027-06-30', '李四', '13800138002', 'active', '李玉兰', '310101198506120021', '13900139002', '10亿', '2015-03-20', '电子商务、跨境贸易、供应链服务', '上海市浦东新区张江路88号', '电商行业大客户'),
+('教育C', '教育C科技公司', '普通客户', '2025-10-15', 2000, 500, '2025-10-15', '王五', '13800138003', 'cancelled', '周志远', '440301197812230033', '13900139003', '800万', '2020-09-01', '教育咨询、在线教育培训、软件开发', '广州市天河区五山路100号', '教育行业客户');
 
 -- 客户类型字典
 INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
@@ -333,6 +342,12 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('we_corp_subject_short', '教育C', '教育C', 3),
 ('we_corp_subject_short', '金融D', '金融D', 4),
 ('we_corp_subject_short', '制造E', '制造E', 5);
+
+-- 主体状态字典
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('we_corp_status', 'active', '正常', 1),
+('we_corp_status', 'cancelled', '已注销', 2),
+('we_corp_status', 'frozen', '已冻结', 3);
 
 -- 菜单配置：企微主体管理 (id=50 作为分组，501 为页面)
 INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES

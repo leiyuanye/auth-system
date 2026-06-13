@@ -13,6 +13,14 @@
         <result column="contact_valid_date" property="contactValidDate"/>
         <result column="creator" property="creator"/>
         <result column="phone" property="phone"/>
+        <result column="corp_status" property="corpStatus"/>
+        <result column="legal_name" property="legalName"/>
+        <result column="legal_id_card" property="legalIdCard"/>
+        <result column="legal_phone" property="legalPhone"/>
+        <result column="register_capital" property="registerCapital"/>
+        <result column="register_date" property="registerDate"/>
+        <result column="business_scope" property="businessScope"/>
+        <result column="register_address" property="registerAddress"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -22,6 +30,8 @@
     <select id="selectAll" resultMap="WeCorpMap">
         SELECT id, subject_short, subject_full, customer_type, cert_expire,
                quota_total, quota_used, contact_valid_date, creator, phone,
+               corp_status, legal_name, legal_id_card, legal_phone,
+               register_capital, register_date, business_scope, register_address,
                remark, create_time, update_time
         FROM we_corp
         ORDER BY id DESC
@@ -30,6 +40,8 @@
     <select id="selectById" resultMap="WeCorpMap">
         SELECT id, subject_short, subject_full, customer_type, cert_expire,
                quota_total, quota_used, contact_valid_date, creator, phone,
+               corp_status, legal_name, legal_id_card, legal_phone,
+               register_capital, register_date, business_scope, register_address,
                remark, create_time, update_time
         FROM we_corp
         WHERE id = #{id}
@@ -38,6 +50,8 @@
     <select id="selectByCondition" resultMap="WeCorpMap">
         SELECT id, subject_short, subject_full, customer_type, cert_expire,
                quota_total, quota_used, contact_valid_date, creator, phone,
+               corp_status, legal_name, legal_id_card, legal_phone,
+               register_capital, register_date, business_scope, register_address,
                remark, create_time, update_time
         FROM we_corp
         <where>
@@ -58,7 +72,7 @@
                 AND (subject_short LIKE CONCAT('%', #{keyword}, '%')
                     OR subject_full LIKE CONCAT('%', #{keyword}, '%')
                     OR phone LIKE CONCAT('%', #{keyword}, '%')
-                    OR creator LIKE CONCAT('%', #{keyword}, '%')
+                    OR creator LIKE CONCAT('%', #{keyword}, '%'))
             </if>
         </where>
         ORDER BY id DESC
@@ -87,7 +101,7 @@
                 AND (subject_short LIKE CONCAT('%', #{keyword}, '%')
                     OR subject_full LIKE CONCAT('%', #{keyword}, '%')
                     OR phone LIKE CONCAT('%', #{keyword}, '%')
-                    OR creator LIKE CONCAT('%', #{keyword}, '%')
+                    OR creator LIKE CONCAT('%', #{keyword}, '%'))
             </if>
         </where>
     </select>
@@ -95,10 +109,14 @@
     <!-- ============ 新增 ============ -->
     <insert id="insert" parameterType="com.example.auth.entity.WeCorp" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO we_corp (subject_short, subject_full, customer_type, cert_expire,
-                              quota_total, quota_used, contact_valid_date, creator, phone,
-                              remark, create_time, update_time)
+                             quota_total, quota_used, contact_valid_date, creator, phone,
+                             corp_status, legal_name, legal_id_card, legal_phone,
+                             register_capital, register_date, business_scope, register_address,
+                             remark, create_time, update_time)
         VALUES (#{subjectShort}, #{subjectFull}, #{customerType}, #{certExpire},
                 #{quotaTotal}, #{quotaUsed}, #{contactValidDate}, #{creator}, #{phone},
+                #{corpStatus}, #{legalName}, #{legalIdCard}, #{legalPhone},
+                #{registerCapital}, #{registerDate}, #{businessScope}, #{registerAddress},
                 #{remark}, NOW(), NOW())
     </insert>
 
@@ -115,6 +133,14 @@
             <if test="contactValidDate != null">contact_valid_date = #{contactValidDate},</if>
             <if test="creator != null">creator = #{creator},</if>
             <if test="phone != null">phone = #{phone},</if>
+            <if test="corpStatus != null">corp_status = #{corpStatus},</if>
+            <if test="legalName != null">legal_name = #{legalName},</if>
+            <if test="legalIdCard != null">legal_id_card = #{legalIdCard},</if>
+            <if test="legalPhone != null">legal_phone = #{legalPhone},</if>
+            <if test="registerCapital != null">register_capital = #{registerCapital},</if>
+            <if test="registerDate != null">register_date = #{registerDate},</if>
+            <if test="businessScope != null">business_scope = #{businessScope},</if>
+            <if test="registerAddress != null">register_address = #{registerAddress},</if>
             <if test="remark != null">remark = #{remark},</if>
             update_time = NOW()
         </set>

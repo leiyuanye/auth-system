@@ -59,13 +59,18 @@ public class WeCorpController {
 
     @GetMapping("/{id}")
     public Result<WeCorp> getById(@PathVariable Long id) {
-        return Result.ok(weCorpMapper.selectById(id));
+        WeCorp corp = weCorpMapper.selectById(id);
+        if (corp == null) return Result.fail("主体不存在");
+        return Result.ok(corp);
     }
 
     @PostMapping
     public Result<Map<String, Object>> add(@RequestBody WeCorp corp, HttpServletRequest request) {
         if (corp.getSubjectShort() == null || corp.getSubjectShort().trim().isEmpty()) {
             return Result.fail("主体简称不能为空");
+        }
+        if (corp.getCorpStatus() == null || corp.getCorpStatus().trim().isEmpty()) {
+            corp.setCorpStatus("active");
         }
         weCorpMapper.insert(corp);
         logUtil.logAdd(MODULE_NAME, corp.getId(), corp.getSubjectShort(), corp, currentUser(request));
@@ -77,6 +82,7 @@ public class WeCorpController {
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody WeCorp corp, HttpServletRequest request) {
         WeCorp old = weCorpMapper.selectById(id);
+        if (old == null) return Result.fail("主体不存在");
         corp.setId(id);
         weCorpMapper.update(corp);
         WeCorp newOne = weCorpMapper.selectById(id);
@@ -90,7 +96,7 @@ public class WeCorpController {
     public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
         WeCorp old = weCorpMapper.selectById(id);
         weCorpMapper.deleteById(id);
-        logUtil.logDelete(MODULE_NAME, id, old != null ? old.getSubjectShort() : String.valueOf(id), old, currentUser(request));
+        logUtil.logDelete(MODULE_NAME, id, old != null ? old.getSubjectShort() : null, old, currentUser(request));
         return Result.ok(null);
     }
 }
