@@ -290,3 +290,54 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 30),
 (3, 301), (3, 303),
 (3, 40), (3, 401);
+
+-- ==================== 企微主体管理 ====================
+
+DROP TABLE IF EXISTS we_corp;
+CREATE TABLE we_corp (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    subject_short VARCHAR(128) DEFAULT NULL,       -- 主体简称
+    subject_full VARCHAR(255) DEFAULT NULL,        -- 企业全称
+    customer_type VARCHAR(255) DEFAULT NULL,        -- 客户类型（多选用逗号分隔）
+    cert_expire DATE DEFAULT NULL,                 -- 企业认证到期时间
+    quota_total INT DEFAULT 0,                     -- 外部联系人规模额度
+    quota_used INT DEFAULT 0,                      -- 已用外部联系人额度
+    contact_valid_date DATE DEFAULT NULL,          -- 外部联系人有效期
+    creator VARCHAR(128) DEFAULT NULL,             -- 主体创建人
+    phone VARCHAR(32) DEFAULT NULL,                -- 手机号码
+    remark VARCHAR(512) DEFAULT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_subject_short (subject_short),
+    KEY idx_customer_type (customer_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO we_corp (subject_short, subject_full, customer_type, cert_expire, quota_total, quota_used, contact_valid_date, creator, phone, remark) VALUES
+('科技A', '科技A有限公司', '优质客户,战略客户', '2026-12-31', 5000, 1280, '2026-12-31', '张三', '13800138001', '战略合作客户'),
+('电商B', '电商B集团股份有限公司', '优质客户', '2027-06-30', 10000, 8700, '2027-06-30', '李四', '13800138002', '电商行业大客户'),
+('教育C', '教育C科技公司', '普通客户', '2025-10-15', 2000, 500, '2025-10-15', '王五', '13800138003', '教育行业客户');
+
+-- 客户类型字典
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('we_corp_customer_type', '优质客户', '优质客户', 1),
+('we_corp_customer_type', '战略客户', '战略客户', 2),
+('we_corp_customer_type', '普通客户', '普通客户', 3),
+('we_corp_customer_type', '潜在客户', '潜在客户', 4),
+('we_corp_customer_type', '风险客户', '风险客户', 5);
+
+-- 菜单配置：企微主体管理 (id=50 作为分组，501 为页面)
+INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+(50, '企微主体管理', '/wecorp', 'Collection', 0, 5, 1, '', 1),
+(501, '企微主体', '/wecorp/list', 'User', 50, 1, 1, 'wecorp:list:view', 1);
+
+INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+(50101, '企微主体查询', '', '', 501, 1, 2, 'wecorp:list:view', 1),
+(50102, '企微主体新增', '', '', 501, 2, 2, 'wecorp:list:add', 1),
+(50103, '企微主体编辑', '', '', 501, 3, 2, 'wecorp:list:edit', 1),
+(50104, '企微主体删除', '', '', 501, 4, 2, 'wecorp:list:delete', 1);
+
+INSERT INTO sys_role_menu (role_id, menu_id) VALUES
+(1, 50), (1, 501), (1, 50101), (1, 50102), (1, 50103), (1, 50104),
+(2, 50), (2, 501), (2, 50101), (2, 50102), (2, 50103), (2, 50104),
+(3, 50), (3, 501);

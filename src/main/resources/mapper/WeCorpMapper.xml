@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.auth.mapper.WeCorpMapper">
+
+    <resultMap id="WeCorpMap" type="com.example.auth.entity.WeCorp">
+        <id column="id" property="id"/>
+        <result column="subject_short" property="subjectShort"/>
+        <result column="subject_full" property="subjectFull"/>
+        <result column="customer_type" property="customerType"/>
+        <result column="cert_expire" property="certExpire"/>
+        <result column="quota_total" property="quotaTotal"/>
+        <result column="quota_used" property="quotaUsed"/>
+        <result column="contact_valid_date" property="contactValidDate"/>
+        <result column="creator" property="creator"/>
+        <result column="phone" property="phone"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- ============ 查询 ============ -->
+    <select id="selectAll" resultMap="WeCorpMap">
+        SELECT id, subject_short, subject_full, customer_type, cert_expire,
+               quota_total, quota_used, contact_valid_date, creator, phone,
+               remark, create_time, update_time
+        FROM we_corp
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectById" resultMap="WeCorpMap">
+        SELECT id, subject_short, subject_full, customer_type, cert_expire,
+               quota_total, quota_used, contact_valid_date, creator, phone,
+               remark, create_time, update_time
+        FROM we_corp
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="WeCorpMap">
+        SELECT id, subject_short, subject_full, customer_type, cert_expire,
+               quota_total, quota_used, contact_valid_date, creator, phone,
+               remark, create_time, update_time
+        FROM we_corp
+        <where>
+            <if test="subjectShorts != null and subjectShorts.size() > 0">
+                AND subject_short IN
+                <foreach collection="subjectShorts" item="s" open="(" separator="," close=")">
+                    #{s}
+                </foreach>
+            </if>
+            <if test="customerTypes != null and customerTypes.size() > 0">
+                AND (
+                <foreach collection="customerTypes" item="c" separator=" OR ">
+                    customer_type = #{c} OR customer_type LIKE CONCAT('%', #{c}, ',%') OR customer_type LIKE CONCAT('%,', #{c}, ',%') OR customer_type LIKE CONCAT('%,', #{c}, '%')
+                </foreach>
+                )
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (subject_short LIKE CONCAT('%', #{keyword}, '%')
+                    OR subject_full LIKE CONCAT('%', #{keyword}, '%')
+                    OR phone LIKE CONCAT('%', #{keyword}, '%')
+                    OR creator LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM we_corp
+        <where>
+            <if test="subjectShorts != null and subjectShorts.size() > 0">
+                AND subject_short IN
+                <foreach collection="subjectShorts" item="s" open="(" separator="," close=")">
+                    #{s}
+                </foreach>
+            </if>
+            <if test="customerTypes != null and customerTypes.size() > 0">
+                AND (
+                <foreach collection="customerTypes" item="c" separator=" OR ">
+                    customer_type = #{c} OR customer_type LIKE CONCAT('%', #{c}, ',%') OR customer_type LIKE CONCAT('%,', #{c}, ',%') OR customer_type LIKE CONCAT('%,', #{c}, '%')
+                </foreach>
+                )
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (subject_short LIKE CONCAT('%', #{keyword}, '%')
+                    OR subject_full LIKE CONCAT('%', #{keyword}, '%')
+                    OR phone LIKE CONCAT('%', #{keyword}, '%')
+                    OR creator LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- ============ 新增 ============ -->
+    <insert id="insert" parameterType="com.example.auth.entity.WeCorp" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO we_corp (subject_short, subject_full, customer_type, cert_expire,
+                              quota_total, quota_used, contact_valid_date, creator, phone,
+                              remark, create_time, update_time)
+        VALUES (#{subjectShort}, #{subjectFull}, #{customerType}, #{certExpire},
+                #{quotaTotal}, #{quotaUsed}, #{contactValidDate}, #{creator}, #{phone},
+                #{remark}, NOW(), NOW())
+    </insert>
+
+    <!-- ============ 更新 ============ -->
+    <update id="update" parameterType="com.example.auth.entity.WeCorp">
+        UPDATE we_corp
+        <set>
+            <if test="subjectShort != null">subject_short = #{subjectShort},</if>
+            <if test="subjectFull != null">subject_full = #{subjectFull},</if>
+            <if test="customerType != null">customer_type = #{customerType},</if>
+            <if test="certExpire != null">cert_expire = #{certExpire},</if>
+            <if test="quotaTotal != null">quota_total = #{quotaTotal},</if>
+            <if test="quotaUsed != null">quota_used = #{quotaUsed},</if>
+            <if test="contactValidDate != null">contact_valid_date = #{contactValidDate},</if>
+            <if test="creator != null">creator = #{creator},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ============ 删除 ============ -->
+    <delete id="deleteById">
+        DELETE FROM we_corp WHERE id = #{id}
+    </delete>
+
+</mapper>
