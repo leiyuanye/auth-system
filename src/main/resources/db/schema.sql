@@ -109,7 +109,7 @@ CREATE TABLE phone_card (
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_iccd (iccd),
+    KEY idx_iccd (iccd),
     KEY idx_realname_id (realname_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -161,18 +161,18 @@ INSERT INTO phone_card (iccd, agent_name, phone_number, realname_id, realname_na
 ('89860123456789003', 'ZZ网络科技', '13800138003', 3, '王五', 1, 2, 3, '需二次实名'),
 ('89860123456789004', 'XX科技有限公司', '13800138004', 4, '赵六', 1, 3, 1, '欠费待处理'),
 ('89860123456789005', 'YY通信服务中心', '13800138005', 5, '孙七', 1, 1, 2, '市场部在用'),
-('89860987654321001', 'XX科技有限公司', '13811112222', NULL, NULL, 2, 1, 1, '库存备用卡-01'),
-('89860987654321002', 'YY通信服务中心', '13811113333', NULL, NULL, 2, 1, 3, '库存备用卡-02'),
-('89860987654321003', 'ZZ网络科技', '13811114444', NULL, NULL, 2, 2, 2, '需二次实名的备用卡');
+('89860987654321001', 'XX科技有限公司', '13811112222', NULL, '未实名', 2, 1, 1, '库存备用卡-01'),
+('89860987654321002', 'YY通信服务中心', '13811113333', NULL, '未实名', 2, 1, 3, '库存备用卡-02'),
+('89860987654321003', 'ZZ网络科技', '13811114444', NULL, '未实名', 2, 2, 2, '需二次实名的备用卡');
 
 INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, remote_account, remote_pwd, backend_account, backend_pwd, remark, expire_time) VALUES
-('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, 'root', 'dbRoot2026', 'admin', 'admin@db', '主数据库服务器', '2026-12-31 23:59:59'),
-('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, 'root', 'appRoot2026', 'app_admin', 'app@2026', '业务应用服务器', '2026-10-15 23:59:59'),
-('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, 'redis_admin', 'CacheAdmin2026', 'admin', 'admin@cache', 'Redis缓存服务器（维护中）', '2025-08-20 23:59:59'),
-('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, 'backup_admin', 'BkAdmin2026', 'admin', 'admin@backup', '定时备份服务器（已到期）', '2025-01-15 23:59:59'),
-('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', 3, 'root', 'spareRoot2026', 'admin', 'admin@spare', '备用数据库服务器', '2027-06-30 23:59:59'),
-('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', 1, 'root', 'appSpare2026', 'admin', 'admin@spare', '备用应用服务器', '2026-09-01 23:59:59'),
-('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', 1, 'redis_admin', 'cacheSpare2026', 'admin', 'admin@spare', '备用缓存服务器', '2027-03-20 23:59:59');
+('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, 'root', 'dbRoot2026', 'admin', 'admin@db', '主数据库服务器', '2026-12-31'),
+('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, 'root', 'appRoot2026', 'app_admin', 'app@2026', '业务应用服务器', '2026-10-15'),
+('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, 'redis_admin', 'CacheAdmin2026', 'admin', 'admin@cache', 'Redis缓存服务器（维护中）', '2025-08-20'),
+('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, 'backup_admin', 'BkAdmin2026', 'admin', 'admin@backup', '定时备份服务器（已到期）', '2025-01-15'),
+('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', 3, 'root', 'spareRoot2026', 'admin', 'admin@spare', '备用数据库服务器', '2027-06-30'),
+('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', 1, 'root', 'appSpare2026', 'admin', 'admin@spare', '备用应用服务器', '2026-09-01'),
+('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', 1, 'redis_admin', 'cacheSpare2026', 'admin', 'admin@spare', '备用缓存服务器', '2027-03-20');
 
 DROP TABLE IF EXISTS sys_dict;
 CREATE TABLE sys_dict (
