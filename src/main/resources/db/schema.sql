@@ -326,6 +326,14 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('we_corp_customer_type', '潜在客户', '潜在客户', 4),
 ('we_corp_customer_type', '风险客户', '风险客户', 5);
 
+-- 主体简称字典
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('we_corp_subject_short', '科技A', '科技A', 1),
+('we_corp_subject_short', '电商B', '电商B', 2),
+('we_corp_subject_short', '教育C', '教育C', 3),
+('we_corp_subject_short', '金融D', '金融D', 4),
+('we_corp_subject_short', '制造E', '制造E', 5);
+
 -- 菜单配置：企微主体管理 (id=50 作为分组，501 为页面)
 INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
 (50, '企微主体管理', '/wecorp', 'Collection', 0, 5, 1, '', 1),
