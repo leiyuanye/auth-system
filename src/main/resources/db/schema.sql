@@ -304,6 +304,7 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (102, '角色管理', '/system/role', 'UserFilled', 10, 2, 1, 'system:role:view', 1),
 (103, '菜单管理', '/system/menu', 'Menu', 10, 3, 1, 'system:menu:view', 1),
 (104, '日志管理', '/system/log', 'Document', 10, 4, 1, 'system:log:view', 1),
+(105, '数据字典', '/system/dict', 'Collection', 10, 5, 1, 'system:dict:view', 1),
 
 -- ========== 手机卡管理 ==========
 (20, '手机卡管理', '/phone', 'Iphone', 0, 2, 1, '', 1),
@@ -345,7 +346,13 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 (10304, '菜单删除', '', '', 103, 4, 2, 'system:menu:delete', 1),
 
 -- 日志管理按钮(parent_id=104)
-(10401, '日志查询', '', '', 104, 1, 2, 'system:log:view', 1);
+(10401, '日志查询', '', '', 104, 1, 2, 'system:log:view', 1),
+
+-- 数据字典按钮(parent_id=105)
+(10501, '字典查询', '', '', 105, 1, 2, 'system:dict:view', 1),
+(10502, '字典新增', '', '', 105, 2, 2, 'system:dict:add', 1),
+(10503, '字典编辑', '', '', 105, 3, 2, 'system:dict:edit', 1),
+(10504, '字典删除', '', '', 105, 4, 2, 'system:dict:delete', 1),
 
 -- ============================================================
 -- 手机卡管理按钮权限
@@ -419,6 +426,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (2, 102),                                                         -- 角色管理(仅查看)
 (2, 103),                                                         -- 菜单管理(仅查看)
 (2, 104),                                                         -- 日志管理(仅查看)
+(2, 105), (2, 10501), (2, 10502), (2, 10503), (2, 10504),       -- 数据字典(含按钮)
 (2, 20),                                                         -- 手机卡管理
 (2, 201), (2, 20101), (2, 20102), (2, 20103), (2, 20104),       -- 在用手机卡(含按钮)
 (2, 202), (2, 20201), (2, 20202), (2, 20203), (2, 20204),       -- 备用手机卡(含按钮)
@@ -439,6 +447,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 102),                                                         -- 角色管理(仅查看)
 (3, 103),                                                         -- 菜单管理(仅查看)
 (3, 104),                                                         -- 日志管理(仅查看)
+(3, 105),                                                         -- 数据字典(仅查看)
 (3, 20),                                                          -- 手机卡管理
 (3, 201),                                                         -- 在用手机卡(仅查看)
 (3, 202),                                                         -- 备用手机卡(仅查看)
