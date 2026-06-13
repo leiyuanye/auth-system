@@ -204,6 +204,16 @@
            OR (realname_name IS NOT NULL AND realname_name != '' AND realname_name != '未实名')
         GROUP BY realname_name
         ORDER BY total_count DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByRealnameWithOperatorTotal" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT 1 FROM phone_card
+            WHERE realname_id IS NOT NULL
+               OR (realname_name IS NOT NULL AND realname_name != '' AND realname_name != '未实名')
+            GROUP BY realname_name
+        ) AS t
     </select>
 
     <select id="countTotalRealname" resultType="int">

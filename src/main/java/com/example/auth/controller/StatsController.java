@@ -35,7 +35,9 @@ public class StatsController {
      * 手机卡数据总览
      */
     @GetMapping("/phone/overview")
-    public Result<Map<String, Object>> phoneOverview() {
+    public Result<Map<String, Object>> phoneOverview(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         Map<String, Object> data = new HashMap<>();
 
         data.put("totalCards", phoneCardMapper.countTotal());
@@ -57,9 +59,13 @@ public class StatsController {
         data.put("realnameByOperator", realnameDist);
         data.put("totalRealnameCards", phoneCardMapper.countTotalRealname());
 
-        // 每个实名人 × 运营商明细
-        List<RealnameDetailItem> realnameTable = phoneCardMapper.countByRealnameWithOperator();
+        // 每个实名人 × 运营商明细（分页）
+        int offset = (page != null && page > 0 ? page - 1 : 0) * (size != null && size > 0 ? size : 10);
+        int limit = size != null && size > 0 ? size : 10;
+        List<RealnameDetailItem> realnameTable = phoneCardMapper.countByRealnameWithOperator(offset, limit);
+        int tableTotal = phoneCardMapper.countByRealnameWithOperatorTotal();
         data.put("realnameWithOperatorTable", realnameTable);
+        data.put("tableTotal", tableTotal);
 
         return Result.ok(data);
     }

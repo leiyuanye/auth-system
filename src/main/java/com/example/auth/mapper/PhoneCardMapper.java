@@ -65,9 +65,16 @@ public interface PhoneCardMapper {
     List<OperatorCountItem> countRealnameByOperator();
 
     /**
-     * 按实名人分组统计：每个实名人在各运营商下的实名卡数量
+     * 按实名人分组统计：每个实名人在各运营商下的实名卡数量（分页）
      */
-    List<RealnameDetailItem> countByRealnameWithOperator();
+    List<RealnameDetailItem> countByRealnameWithOperator(
+            @Param("offset") Integer offset,
+            @Param("limit") Integer limit);
+
+    /**
+     * 按实名人分组统计的总条数（用于分页计算）
+     */
+    int countByRealnameWithOperatorTotal();
 
     /**
      * 统计已实名手机卡总数
