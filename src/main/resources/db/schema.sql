@@ -293,17 +293,16 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 30),
 (3, 301), (3, 303),
 (3, 40), (3, 401),
-(3, 60), (3, 601);
+(3, 60);
 
 -- ==================== 关于 ====================
 
 INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
-(60, '关于', '/about', 'InfoFilled', 0, 9, 1, '', 1),
-(601, '部门介绍', '/about', 'InfoFilled', 60, 1, 1, 'about:view', 1);
+(60, '关于', '/about', 'InfoFilled', 0, 9, 1, 'about:view', 1);
 
 INSERT INTO sys_role_menu (role_id, menu_id) VALUES
-(1, 60), (1, 601),
-(2, 60), (2, 601);
+(1, 60),
+(2, 60);
 
 -- ==================== 企微主体管理 ====================
 
