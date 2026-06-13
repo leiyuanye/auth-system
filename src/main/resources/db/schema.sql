@@ -145,7 +145,7 @@ CREATE TABLE sys_server (
     backend_pwd VARCHAR(128) DEFAULT NULL,
     remark VARCHAR(512) DEFAULT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expire_time DATETIME DEFAULT NULL,
+    expire_time DATE DEFAULT NULL,
     PRIMARY KEY (id),
     KEY idx_ip (ip_address),
     KEY idx_server_status (server_status)

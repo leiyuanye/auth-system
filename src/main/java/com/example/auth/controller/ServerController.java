@@ -115,8 +115,6 @@ public class ServerController {
             headerFont.setBold(true);
             headerStyle.setFont(headerFont);
             headerStyle.setAlignment(HorizontalAlignment.CENTER);
-            CellStyle dateStyle = wb.createCellStyle();
-            dateStyle.setDataFormat(wb.createDataFormat().getFormat("yyyy-MM-dd HH:mm:ss"));
 
             // 表头
             Row headerRow = sheet.createRow(0);
@@ -265,8 +263,7 @@ public class ServerController {
             List<Server> servers = new ArrayList<>();
             SimpleDateFormat[] dateFormats = {
                 new SimpleDateFormat("yyyy/MM/dd"),
-                new SimpleDateFormat("yyyy-MM-dd"),
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                new SimpleDateFormat("yyyy-MM-dd")
             };
 
             for (int i = startRow; i <= sheet.getLastRowNum(); i++) {
@@ -333,7 +330,8 @@ public class ServerController {
             case STRING: return cell.getStringCellValue().trim();
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getLocalDateTimeCellValue().toString();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    return sdf.format(cell.getDateCellValue());
                 }
                 return String.valueOf((long) cell.getNumericCellValue());
             case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
