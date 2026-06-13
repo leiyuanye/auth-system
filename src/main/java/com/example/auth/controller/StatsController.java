@@ -77,7 +77,7 @@ public class StatsController {
         data.put("expiredServers", expired);
 
         // 服务器类型分布
-        List<Map<String, Object>> typeDist = serverMapper.selectByCondition(null, null, 0, 10000)
+        List<Map<String, Object>> typeDist = serverMapper.selectByCondition(null, null, null, 0, 10000)
                 .stream()
                 .collect(java.util.stream.Collectors.groupingBy(
                         s -> s.getServerType() != null ? s.getServerType() : "未知",

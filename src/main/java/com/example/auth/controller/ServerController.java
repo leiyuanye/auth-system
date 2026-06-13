@@ -41,10 +41,11 @@ public class ServerController {
     public Result<PageResult<Server>> list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer serverStatus,
+            @RequestParam(required = false) String expireSort,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<Server> list = serverMapper.selectByCondition(keyword, serverStatus, offset, size);
+        List<Server> list = serverMapper.selectByCondition(keyword, serverStatus, expireSort, offset, size);
         int total = serverMapper.countByCondition(keyword, serverStatus);
         return Result.ok(new PageResult<>(total, list, page, size));
     }

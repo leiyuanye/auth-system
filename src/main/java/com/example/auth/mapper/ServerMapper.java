@@ -32,6 +32,7 @@ public interface ServerMapper {
     List<Server> selectByCondition(
             @Param("keyword") String keyword,
             @Param("serverStatus") Integer serverStatus,
+            @Param("expireSort") String expireSort,
             @Param("offset") Integer offset,
             @Param("limit") Integer limit);
 

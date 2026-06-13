@@ -46,7 +46,17 @@
                 AND server_status = #{serverStatus}
             </if>
         </where>
-        ORDER BY id DESC
+        <choose>
+            <when test="expireSort == 'asc'">
+                ORDER BY expire_time IS NULL, expire_time ASC, id DESC
+            </when>
+            <when test="expireSort == 'desc'">
+                ORDER BY expire_time IS NULL, expire_time DESC, id DESC
+            </when>
+            <otherwise>
+                ORDER BY id DESC
+            </otherwise>
+        </choose>
         <if test="offset != null and limit != null">
             LIMIT #{offset}, #{limit}
         </if>
