@@ -38,14 +38,15 @@ public class PhoneCardController {
     public Result<PageResult<PhoneCard>> list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer cardType,
+            @RequestParam(required = false) Integer operatorType,
             @RequestParam(required = false) Integer usageStatus,
             @RequestParam(required = false) Integer cardStatus,
             @RequestParam(required = false) String groupBy,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, groupBy, offset, size);
-        int total = cardMapper.countByCondition(keyword, cardType, usageStatus, cardStatus);
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, operatorType, groupBy, offset, size);
+        int total = cardMapper.countByCondition(keyword, cardType, usageStatus, cardStatus, operatorType);
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
@@ -102,10 +103,11 @@ public class PhoneCardController {
     public void exportExcel(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer cardType,
+            @RequestParam(required = false) Integer operatorType,
             @RequestParam(required = false) Integer usageStatus,
             @RequestParam(required = false) Integer cardStatus,
             HttpServletResponse response) throws Exception {
-        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, null, 0, Integer.MAX_VALUE);
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, cardType, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
         PhoneCardExcelUtil.exportExcel(list, response);
     }
 

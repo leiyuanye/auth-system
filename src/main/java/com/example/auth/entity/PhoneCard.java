@@ -15,6 +15,7 @@ public class PhoneCard {
     private Integer usageStatus;
     private Integer cardStatus;
     private Integer cardType;
+    private Integer operatorType;
     private String remark;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

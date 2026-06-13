@@ -12,6 +12,7 @@
         <result column="usage_status" property="usageStatus"/>
         <result column="card_status" property="cardStatus"/>
         <result column="card_type" property="cardType"/>
+        <result column="operator_type" property="operatorType"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -19,21 +20,21 @@
 
     <select id="selectAll" resultMap="PhoneCardMap">
         SELECT id, card_number, agent_name, phone_number, realname_id, realname_name,
-               usage_status, card_status, card_type, remark, create_time, update_time
+               usage_status, card_status, card_type, operator_type, remark, create_time, update_time
         FROM phone_card
         ORDER BY id DESC
     </select>
 
     <select id="selectById" resultMap="PhoneCardMap">
         SELECT id, card_number, agent_name, phone_number, realname_id, realname_name,
-               usage_status, card_status, card_type, remark, create_time, update_time
+               usage_status, card_status, card_type, operator_type, remark, create_time, update_time
         FROM phone_card
         WHERE id = #{id}
     </select>
 
     <select id="selectByCondition" resultMap="PhoneCardMap">
         SELECT id, card_number, agent_name, phone_number, realname_id, realname_name,
-               usage_status, card_status, card_type, remark, create_time, update_time
+               usage_status, card_status, card_type, operator_type, remark, create_time, update_time
         FROM phone_card
         <where>
             <if test="keyword != null and keyword != ''">
@@ -43,6 +44,9 @@
             </if>
             <if test="cardType != null">
                 AND card_type = #{cardType}
+            </if>
+            <if test="operatorType != null">
+                AND operator_type = #{operatorType}
             </if>
             <if test="usageStatus != null">
                 AND usage_status = #{usageStatus}
@@ -54,6 +58,9 @@
         <choose>
             <when test="groupBy == 'cardType'">
                 ORDER BY card_type IS NULL, card_type ASC, id DESC
+            </when>
+            <when test="groupBy == 'operatorType'">
+                ORDER BY operator_type IS NULL, operator_type ASC, id DESC
             </when>
             <when test="groupBy == 'agentName'">
                 ORDER BY agent_name IS NULL, agent_name ASC, id DESC
@@ -87,6 +94,9 @@
             <if test="cardType != null">
                 AND card_type = #{cardType}
             </if>
+            <if test="operatorType != null">
+                AND operator_type = #{operatorType}
+            </if>
             <if test="usageStatus != null">
                 AND usage_status = #{usageStatus}
             </if>
@@ -98,9 +108,9 @@
 
     <insert id="insert" parameterType="com.example.auth.entity.PhoneCard" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO phone_card (card_number, agent_name, phone_number, realname_id, realname_name,
-                                usage_status, card_status, card_type, remark, create_time, update_time)
+                                usage_status, card_status, card_type, operator_type, remark, create_time, update_time)
         VALUES (#{cardNumber}, #{agentName}, #{phoneNumber}, #{realnameId}, #{realnameName},
-                #{usageStatus}, #{cardStatus}, #{cardType}, #{remark}, NOW(), NOW())
+                #{usageStatus}, #{cardStatus}, #{cardType}, #{operatorType}, #{remark}, NOW(), NOW())
     </insert>
 
     <update id="update" parameterType="com.example.auth.entity.PhoneCard">
@@ -114,6 +124,7 @@
             <if test="usageStatus != null">usage_status = #{usageStatus},</if>
             <if test="cardStatus != null">card_status = #{cardStatus},</if>
             <if test="cardType != null">card_type = #{cardType},</if>
+            <if test="operatorType != null">operator_type = #{operatorType},</if>
             <if test="remark != null">remark = #{remark},</if>
             update_time = NOW()
         </set>

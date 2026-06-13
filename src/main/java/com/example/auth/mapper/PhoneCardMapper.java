@@ -23,6 +23,7 @@ public interface PhoneCardMapper {
             @Param("cardType") Integer cardType,
             @Param("usageStatus") Integer usageStatus,
             @Param("cardStatus") Integer cardStatus,
+            @Param("operatorType") Integer operatorType,
             @Param("groupBy") String groupBy,
             @Param("offset") Integer offset,
             @Param("limit") Integer limit);
@@ -31,7 +32,8 @@ public interface PhoneCardMapper {
             @Param("keyword") String keyword,
             @Param("cardType") Integer cardType,
             @Param("usageStatus") Integer usageStatus,
-            @Param("cardStatus") Integer cardStatus);
+            @Param("cardStatus") Integer cardStatus,
+            @Param("operatorType") Integer operatorType);
 
     // ==================== 统计用 ====================
     int countTotal();
