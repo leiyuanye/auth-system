@@ -72,8 +72,8 @@ public class StatsController {
         int total = serverMapper.countTotal();
         int activeServers = serverMapper.countByCardType(1);
         int backupServers = serverMapper.countByCardType(2);
-        // 异常(维护中=2 或 已下线=3)
-        int warningServers = serverMapper.countByServerStatus(2) + serverMapper.countByServerStatus(3);
+        // 异常 = 状态为"到期"(server_status=4)
+        int warningServers = serverMapper.countByServerStatus(4);
 
         data.put("totalServers", total);
         data.put("activeServers", activeServers);
@@ -113,7 +113,8 @@ public class StatsController {
         int activeCards = phoneCardMapper.countByCardType(1);
         int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
         int activeServers = serverMapper.countByCardType(1);
-        int warningServers = serverMapper.countByServerStatus(2) + serverMapper.countByServerStatus(3);
+        // 服务器异常 = 状态为"到期"(server_status=4)
+        int warningServers = serverMapper.countByServerStatus(4);
 
         data.put("totalCards", totalCards);
         data.put("totalServers", totalServers);

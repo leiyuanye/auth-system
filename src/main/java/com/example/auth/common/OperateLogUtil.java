@@ -35,7 +35,7 @@ public class OperateLogUtil {
         FIELD_LABEL.put("id", "ID");
         FIELD_LABEL.put("remark", "备注");
         FIELD_LABEL.put("createTime", "创建时间");
-        FIELD_LABEL.put("updateTime", "更新时间");
+        FIELD_LABEL.put("expireTime", "到期时间");
 
         // ----- 手机卡 (phone_card) -----
         FIELD_LABEL.put("cardNumber", "卡号");
@@ -91,7 +91,7 @@ public class OperateLogUtil {
         FIELD_LABEL.put("location", "所在地区");
         FIELD_LABEL.put("specs", "所在分组");
         FIELD_LABEL.put("mfaKey", "MFA密钥");
-        FIELD_LABEL.put("serverStatus", "运行状态");
+        FIELD_LABEL.put("serverStatus", "状态");
         FIELD_LABEL.put("stockStatus", "库存状态");
 
         // ----- 字段值映射 -----
@@ -128,11 +128,12 @@ public class OperateLogUtil {
         menuTypeMap.put("F", "按钮");
         FIELD_VALUE_LABEL.put("menuType", menuTypeMap);
 
-        // 服务器运行状态: 1=运行中 2=维护中 3=已下线
+        // 服务器状态: 1=运行中 2=维护中 3=已下线 4=到期
         Map<String, String> serverStatusMap = new HashMap<>();
         serverStatusMap.put("1", "运行中");
         serverStatusMap.put("2", "维护中");
         serverStatusMap.put("3", "已下线");
+        serverStatusMap.put("4", "到期");
         FIELD_VALUE_LABEL.put("serverStatus", serverStatusMap);
 
         // 菜单显示状态: 0=显示, 1=隐藏
@@ -144,7 +145,6 @@ public class OperateLogUtil {
         // 忽略列表 —— 不对以下字段做"变更对比"展示
         IGNORE_FIELDS.add("serialVersionUID");
         IGNORE_FIELDS.add("createTime");
-        IGNORE_FIELDS.add("updateTime");
         IGNORE_FIELDS.add("password");       // 密码不展示具体值
         IGNORE_FIELDS.add("avatar");         // 头像 blob/base64 不对比
     }

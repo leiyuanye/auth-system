@@ -15,11 +15,11 @@
         <result column="card_type" property="cardType"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
-        <result column="update_time" property="updateTime"/>
+        <result column="expire_time" property="expireTime"/>
     </resultMap>
 
     <sql id="baseCols">
-        id, server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, update_time
+        id, server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, expire_time
     </sql>
 
     <select id="selectAll" resultMap="ServerMap">
@@ -98,11 +98,11 @@
     </select>
 
     <insert id="insert" parameterType="com.example.auth.entity.Server" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, update_time)
+        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, expire_time)
         VALUES (
             #{serverName}, #{ipAddress}, #{serverType}, #{location}, #{specs}, #{mfaKey},
             #{serverStatus}, #{stockStatus}, #{cardType}, #{remark},
-            NOW(), NOW()
+            NOW(), #{expireTime}
         )
     </insert>
 
@@ -116,10 +116,10 @@
             <if test="specs != null">specs = #{specs},</if>
             <if test="mfaKey != null">mfa_key = #{mfaKey},</if>
             <if test="serverStatus != null">server_status = #{serverStatus},</if>
-            <if test="stockStatus != null">stock_status = #{stockStatus},</if>
+            <if test="stockStatus != null and stockStatus != ''">stock_status = #{stockStatus},</if>
             <if test="cardType != null">card_type = #{cardType},</if>
             <if test="remark != null">remark = #{remark},</if>
-            update_time = NOW()
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
         </set>
         WHERE id = #{id}
     </update>

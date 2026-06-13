@@ -179,12 +179,12 @@ CREATE TABLE sys_server (
     location VARCHAR(128) DEFAULT NULL COMMENT '所在地区: 广州/杭州/北京/上海/成都/其他',
     specs VARCHAR(128) DEFAULT NULL COMMENT '所在分组: 如 数据库组/应用组/缓存组/备份组',
     mfa_key VARCHAR(255) DEFAULT NULL COMMENT 'MFA密钥',
-    server_status TINYINT DEFAULT 1 COMMENT '运行状态: 1=运行中 2=维护中 3=已下线(在用服务器用)',
+    server_status TINYINT DEFAULT 1 COMMENT '状态: 1=运行中 2=维护中 3=已下线 4=到期(在用服务器用)',
     stock_status VARCHAR(16) DEFAULT NULL COMMENT '库存状态: 库存/已借出/报废(备用服务器用)',
     card_type TINYINT DEFAULT 1 COMMENT '类型标识: 1=在用 2=备用',
     remark VARCHAR(512) DEFAULT NULL COMMENT '备注',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME DEFAULT NULL COMMENT '最近修改时间',
+    expire_time DATETIME DEFAULT NULL COMMENT '到期时间',
     PRIMARY KEY (id),
     KEY idx_ip (ip_address),
     KEY idx_card_type (card_type),
@@ -240,17 +240,17 @@ INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realnam
 ('89860987654321003', 3, 'ZZ网络科技', '13811114444', NULL, NULL, '', '59元/月', 2, 2, '需二次实名的备用卡');
 
 -- 服务器示例数据（在用 card_type=1）
-INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark) VALUES
-('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, NULL, 1, '主数据库服务器'),
-('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, NULL, 1, '业务应用服务器'),
-('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, NULL, 1, 'Redis缓存服务器'),
-('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 1, NULL, 1, '定时备份服务器');
+INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, expire_time) VALUES
+('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, NULL, 1, '主数据库服务器', '2026-12-31 23:59:59'),
+('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, NULL, 1, '业务应用服务器', '2026-10-15 23:59:59'),
+('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, NULL, 1, 'Redis缓存服务器', '2025-08-20 23:59:59'),
+('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, NULL, 1, '定时备份服务器（已到期）', '2025-01-15 23:59:59');
 
 -- 服务器示例数据（备用 card_type=2）
-INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark) VALUES
-('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', NULL, '库存', 2, '备用数据库服务器'),
-('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', NULL, '已借出', 2, '已借给业务部使用'),
-('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', NULL, '库存', 2, '备用缓存服务器');
+INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, expire_time) VALUES
+('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', NULL, '库存', 2, '备用数据库服务器', '2027-06-30 23:59:59'),
+('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', NULL, '已借出', 2, '已借给业务部使用', '2026-09-01 23:59:59'),
+('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', NULL, '库存', 2, '备用缓存服务器', '2027-03-20 23:59:59');
 
 -- ============================================================
 -- 服务器字典表（类型/分组/状态等下拉选项可配置）
@@ -284,6 +284,7 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('server_status', '1', '运行中', 1),
 ('server_status', '2', '维护中', 2),
 ('server_status', '3', '已下线', 3),
+('server_status', '4', '到期', 4),
 -- 库存状态（备用服务器用）
 ('stock_status', '库存', '库存', 1),
 ('stock_status', '已借出', '已借出', 2),
