@@ -241,16 +241,16 @@ INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realnam
 
 -- 服务器示例数据（在用 card_type=1）
 INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, expire_time) VALUES
-('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, NULL, 1, '主数据库服务器', '2026-12-31'),
-('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, NULL, 1, '业务应用服务器', '2026-10-15'),
-('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, NULL, 1, 'Redis缓存服务器', '2025-08-20'),
-('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, NULL, 1, '定时备份服务器（已到期）', '2025-01-15');
+('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, NULL, 1, '主数据库服务器', '2026-12-31 23:59:59'),
+('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, NULL, 1, '业务应用服务器', '2026-10-15 23:59:59'),
+('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, NULL, 1, 'Redis缓存服务器', '2025-08-20 23:59:59'),
+('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, NULL, 1, '定时备份服务器（已到期）', '2025-01-15 23:59:59');
 
 -- 服务器示例数据（备用 card_type=2）
 INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, expire_time) VALUES
-('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', NULL, '库存', 2, '备用数据库服务器', '2027-06-30'),
-('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', NULL, '已借出', 2, '已借给业务部使用', '2026-09-01'),
-('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', NULL, '库存', 2, '备用缓存服务器', '2027-03-20');
+('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', NULL, '库存', 2, '备用数据库服务器', '2027-06-30 23:59:59'),
+('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', NULL, '已借出', 2, '已借给业务部使用', '2026-09-01 23:59:59'),
+('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', NULL, '库存', 2, '备用缓存服务器', '2027-03-20 23:59:59');
 
 -- ============================================================
 -- 服务器字典表（类型/分组/状态等下拉选项可配置）
