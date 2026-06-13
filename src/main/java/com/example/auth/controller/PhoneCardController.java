@@ -32,8 +32,7 @@ public class PhoneCardController {
     private static final String MODULE_NAME = "手机卡管理";
 
     private static final String[] EXPORT_HEADERS = {
-            // "ICCID",
-            "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"
+            "ICCID", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"
     };
     private static final String[] IMPORT_HEADERS = {
             "ICCID", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注"
@@ -130,16 +129,16 @@ public class PhoneCardController {
             int rowIdx = 1;
             for (PhoneCard card : list) {
                 Row row = sheet.createRow(rowIdx++);
-                // row.createCell(0).setCellValue(card.getIccd() != null ? card.getIccd() : "");
-                row.createCell(0).setCellValue(operatorText(card.getOperatorType()));
-                row.createCell(1).setCellValue(usageText(card.getUsageStatus()));
-                row.createCell(2).setCellValue(cardStatusText(card.getCardStatus()));
-                row.createCell(3).setCellValue(card.getAgentName() != null ? card.getAgentName() : "");
-                row.createCell(4).setCellValue(card.getPhoneNumber() != null ? card.getPhoneNumber() : "");
-                row.createCell(5).setCellValue(card.getRealnameName() != null ? card.getRealnameName() : "");
-                row.createCell(6).setCellValue(card.getRemark() != null ? card.getRemark() : "");
-                row.createCell(7).setCellValue(card.getCreateTime() != null ? sdf.format(card.getCreateTime()) : "");
-                row.createCell(8).setCellValue(card.getUpdateTime() != null ? sdf.format(card.getUpdateTime()) : "");
+                row.createCell(0).setCellValue(card.getIccd() != null ? card.getIccd() : "");
+                row.createCell(1).setCellValue(operatorText(card.getOperatorType()));
+                row.createCell(2).setCellValue(usageText(card.getUsageStatus()));
+                row.createCell(3).setCellValue(cardStatusText(card.getCardStatus()));
+                row.createCell(4).setCellValue(card.getAgentName() != null ? card.getAgentName() : "");
+                row.createCell(5).setCellValue(card.getPhoneNumber() != null ? card.getPhoneNumber() : "");
+                row.createCell(6).setCellValue(card.getRealnameName() != null ? card.getRealnameName() : "");
+                row.createCell(7).setCellValue(card.getRemark() != null ? card.getRemark() : "");
+                row.createCell(8).setCellValue(card.getCreateTime() != null ? sdf.format(card.getCreateTime()) : "");
+                row.createCell(9).setCellValue(card.getUpdateTime() != null ? sdf.format(card.getUpdateTime()) : "");
             }
 
             // 自动列宽
@@ -150,6 +149,7 @@ public class PhoneCardController {
             String filename = "手机卡数据_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".xlsx";
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
+            response.setHeader("Content-Transfer-Encoding", "binary");
             OutputStream out = response.getOutputStream();
             wb.write(out);
             out.flush();
@@ -202,6 +202,7 @@ public class PhoneCardController {
             String filename = "手机卡导入模板.xlsx";
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
+            response.setHeader("Content-Transfer-Encoding", "binary");
             OutputStream out = response.getOutputStream();
             wb.write(out);
             out.flush();
