@@ -123,12 +123,30 @@ public class PhoneCardController {
         try {
             List<PhoneCard> cards = PhoneCardExcelUtil.importExcel(file.getInputStream());
             if (cards.isEmpty()) {
-                return Result.fail("文件中没有有效数据");
+                return Result.fail("文件中没有有效数据(请确认ICCID列有值)");
             }
             int successCount = 0;
             int failCount = 0;
             StringBuilder failMsg = new StringBuilder();
+            java.util.Set<String> seenIccids = new java.util.HashSet<>();
+            java.util.List<String> duplicateInFile = new java.util.ArrayList<>();
+            java.util.List<String> duplicateInDb = new java.util.ArrayList<>();
+            java.util.List<String> otherErrors = new java.util.ArrayList<>();
+
             for (PhoneCard card : cards) {
+                String iccd = card.getIccd();
+                if (iccd == null || iccd.trim().isEmpty()) continue;
+                iccd = iccd.trim();
+                card.setIccd(iccd);
+
+                // 1. 先检测Excel内部的重复ICCID
+                if (seenIccids.contains(iccd)) {
+                    duplicateInFile.add(iccd);
+                    failCount++;
+                    continue;
+                }
+                seenIccids.add(iccd);
+
                 try {
                     if (card.getCardStatus() == null) card.setCardStatus(1);
                     if (card.getUsageStatus() == null) card.setUsageStatus(1);
@@ -137,11 +155,38 @@ public class PhoneCardController {
                     successCount++;
                 } catch (Exception e) {
                     failCount++;
-                    if (failMsg.length() < 200) {
-                        failMsg.append("ICCID[").append(card.getIccd()).append("]导入失败: ").append(e.getMessage()).append("; ");
+                    String msg = e.getMessage() == null ? "未知错误" : e.getMessage();
+                    // 判断是否为唯一键冲突(数据库已存在相同ICCID)
+                    boolean isDupInDb = msg.contains("Duplicate") || msg.contains("duplicate") || msg.contains("uk_iccd") || msg.contains("UNIQUE");
+                    if (isDupInDb) {
+                        duplicateInDb.add(iccd);
+                    } else {
+                        otherErrors.add(iccd + "(" + msg + ")");
                     }
                 }
             }
+
+            // 组织详细报告
+            if (failCount > 0) {
+                if (!duplicateInFile.isEmpty()) {
+                    failMsg.append("文件内重复ICCID[").append(duplicateInFile.size()).append("]条:");
+                    failMsg.append(String.join(", ", duplicateInFile.subList(0, Math.min(5, duplicateInFile.size()))));
+                    if (duplicateInFile.size() > 5) failMsg.append("...");
+                    failMsg.append("; ");
+                }
+                if (!duplicateInDb.isEmpty()) {
+                    failMsg.append("数据库已存在[").append(duplicateInDb.size()).append("]条:");
+                    failMsg.append(String.join(", ", duplicateInDb.subList(0, Math.min(5, duplicateInDb.size()))));
+                    if (duplicateInDb.size() > 5) failMsg.append("...");
+                    failMsg.append("; ");
+                }
+                if (!otherErrors.isEmpty()) {
+                    failMsg.append("其它失败[").append(otherErrors.size()).append("]条:");
+                    failMsg.append(String.join("; ", otherErrors.subList(0, Math.min(3, otherErrors.size()))));
+                    if (otherErrors.size() > 3) failMsg.append("...");
+                }
+            }
+
             Map<String, Object> data = new HashMap<>();
             data.put("successCount", successCount);
             data.put("failCount", failCount);
