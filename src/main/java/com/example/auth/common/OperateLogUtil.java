@@ -92,7 +92,10 @@ public class OperateLogUtil {
         FIELD_LABEL.put("specs", "所在分组");
         FIELD_LABEL.put("mfaKey", "MFA密钥");
         FIELD_LABEL.put("serverStatus", "状态");
-        FIELD_LABEL.put("stockStatus", "库存状态");
+        FIELD_LABEL.put("remoteAccount", "远程账号");
+        FIELD_LABEL.put("remotePwd", "远程密码");
+        FIELD_LABEL.put("backendAccount", "后台账号");
+        FIELD_LABEL.put("backendPwd", "后台密码");
 
         // ----- 字段值映射 -----
         // 手机卡状态: 1=正常, 2=二次实名, 3=欠费
@@ -146,6 +149,8 @@ public class OperateLogUtil {
         IGNORE_FIELDS.add("serialVersionUID");
         IGNORE_FIELDS.add("createTime");
         IGNORE_FIELDS.add("password");       // 密码不展示具体值
+        IGNORE_FIELDS.add("remotePwd");      // 远程密码：敏感信息
+        IGNORE_FIELDS.add("backendPwd");     // 后台密码：敏感信息
         IGNORE_FIELDS.add("avatar");         // 头像 blob/base64 不对比
     }
 

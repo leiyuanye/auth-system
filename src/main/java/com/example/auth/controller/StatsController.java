@@ -1,6 +1,7 @@
 package com.example.auth.controller;
 
 import com.example.auth.common.Result;
+import com.example.auth.entity.Server;
 import com.example.auth.mapper.PhoneCardMapper;
 import com.example.auth.mapper.ServerMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import java.util.Map;
 /**
  * 统计/Overview 接口
  * path: /api/stats
- * 为首页、手机卡数据总览、服务器总览等页面提供聚合数据
+ * 服务器管理：在用/备用合并，按 server_status 状态聚合
  */
 @RestController
 @RequestMapping("/api/stats")
@@ -29,7 +30,6 @@ public class StatsController {
 
     /**
      * 手机卡数据总览
-     * GET /api/stats/phone/overview
      */
     @GetMapping("/phone/overview")
     public Result<Map<String, Object>> phoneOverview() {
@@ -38,7 +38,6 @@ public class StatsController {
         int total = phoneCardMapper.countTotal();
         int activeCards = phoneCardMapper.countByCardType(1);
         int backupCards = phoneCardMapper.countByCardType(2);
-        // 异常卡(欠费=3 或 二次实名=2)
         int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
 
         data.put("totalCards", total);
@@ -46,15 +45,12 @@ public class StatsController {
         data.put("backupCards", backupCards);
         data.put("warningCards", warningCards);
 
-        // 按代理商分布
         List<Map<String, Object>> agentDist = phoneCardMapper.countByAgent();
         data.put("agentDistribution", agentDist);
 
-        // 按状态分布
         List<Map<String, Object>> statusDist = phoneCardMapper.countByStatusGroup();
         data.put("statusDistribution", statusDist);
 
-        // 月度异常处理 (按月统计异常卡数量)
         List<Map<String, Object>> monthly = phoneCardMapper.monthlyExceptionProcess();
         data.put("monthlyExceptionProcess", monthly);
 
@@ -62,26 +58,26 @@ public class StatsController {
     }
 
     /**
-     * 服务器数据总览
-     * GET /api/stats/server/overview
+     * 服务器总览：不再区分在用/备用，按状态 + 类型分布
      */
     @GetMapping("/server/overview")
     public Result<Map<String, Object>> serverOverview() {
         Map<String, Object> data = new HashMap<>();
 
         int total = serverMapper.countTotal();
-        int activeServers = serverMapper.countByCardType(1);
-        int backupServers = serverMapper.countByCardType(2);
-        // 异常 = 状态为"到期"(server_status=4)
-        int warningServers = serverMapper.countByServerStatus(4);
+        int running = serverMapper.countByServerStatus(1);   // 运行中
+        int maintenance = serverMapper.countByServerStatus(2); // 维护中
+        int offline = serverMapper.countByServerStatus(3);     // 已下线
+        int expired = serverMapper.countByServerStatus(4);     // 到期
 
         data.put("totalServers", total);
-        data.put("activeServers", activeServers);
-        data.put("backupServers", backupServers);
-        data.put("warningServers", warningServers);
+        data.put("runningServers", running);
+        data.put("maintenanceServers", maintenance);
+        data.put("offlineServers", offline);
+        data.put("expiredServers", expired);
 
-        // 服务器类型分布 (通过简单聚合查询所有在用记录)
-        List<Map<String, Object>> typeDist = serverMapper.selectByCondition(null, null, null, null, 0, 10000)
+        // 服务器类型分布
+        List<Map<String, Object>> typeDist = serverMapper.selectByCondition(null, null, 0, 10000)
                 .stream()
                 .collect(java.util.stream.Collectors.groupingBy(
                         s -> s.getServerType() != null ? s.getServerType() : "未知",
@@ -102,7 +98,6 @@ public class StatsController {
 
     /**
      * 首页聚合统计
-     * GET /api/stats/home
      */
     @GetMapping("/home")
     public Result<Map<String, Object>> homeStats() {
@@ -112,18 +107,16 @@ public class StatsController {
         int totalServers = serverMapper.countTotal();
         int activeCards = phoneCardMapper.countByCardType(1);
         int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
-        int activeServers = serverMapper.countByCardType(1);
-        // 服务器异常 = 状态为"到期"(server_status=4)
-        int warningServers = serverMapper.countByServerStatus(4);
+        int runningServers = serverMapper.countByServerStatus(1); // 运行中
+        int expiredServers = serverMapper.countByServerStatus(4); // 到期(异常)
 
         data.put("totalCards", totalCards);
         data.put("totalServers", totalServers);
         data.put("activeCards", activeCards);
         data.put("warningCards", warningCards);
-        data.put("activeServers", activeServers);
-        data.put("warningServers", warningServers);
+        data.put("runningServers", runningServers);
+        data.put("warningServers", expiredServers);
 
-        // 按月新增手机卡（按 create_time）在 Service 层做一个简单统计
         List<Map<String, Object>> monthlyCardTrend = phoneCardMapper.selectByCondition(null, null, null, 0, 10000)
                 .stream()
                 .filter(c -> c.getCreateTime() != null)

@@ -179,15 +179,16 @@ CREATE TABLE sys_server (
     location VARCHAR(128) DEFAULT NULL COMMENT '所在地区: 广州/杭州/北京/上海/成都/其他',
     specs VARCHAR(128) DEFAULT NULL COMMENT '所在分组: 如 数据库组/应用组/缓存组/备份组',
     mfa_key VARCHAR(255) DEFAULT NULL COMMENT 'MFA密钥',
-    server_status TINYINT DEFAULT 1 COMMENT '状态: 1=运行中 2=维护中 3=已下线 4=到期(在用服务器用)',
-    stock_status VARCHAR(16) DEFAULT NULL COMMENT '库存状态: 库存/已借出/报废(备用服务器用)',
-    card_type TINYINT DEFAULT 1 COMMENT '类型标识: 1=在用 2=备用',
+    server_status TINYINT DEFAULT 1 COMMENT '状态: 1=运行中 2=维护中 3=已下线 4=到期',
+    remote_account VARCHAR(64) DEFAULT NULL COMMENT '远程账号',
+    remote_pwd VARCHAR(128) DEFAULT NULL COMMENT '远程密码',
+    backend_account VARCHAR(64) DEFAULT NULL COMMENT '后台账号',
+    backend_pwd VARCHAR(128) DEFAULT NULL COMMENT '后台密码',
     remark VARCHAR(512) DEFAULT NULL COMMENT '备注',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     expire_time DATETIME DEFAULT NULL COMMENT '到期时间',
     PRIMARY KEY (id),
     KEY idx_ip (ip_address),
-    KEY idx_card_type (card_type),
     KEY idx_server_status (server_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务器表';
 
@@ -239,18 +240,15 @@ INSERT INTO phone_card (card_number, agent_id, agent_name, phone_number, realnam
 ('89860987654321002', 2, 'YY通信服务中心', '13811113333', NULL, NULL, '', '49元/月', 1, 2, '库存备用卡-02'),
 ('89860987654321003', 3, 'ZZ网络科技', '13811114444', NULL, NULL, '', '59元/月', 2, 2, '需二次实名的备用卡');
 
--- 服务器示例数据（在用 card_type=1）
-INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, expire_time) VALUES
-('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, NULL, 1, '主数据库服务器', '2026-12-31 23:59:59'),
-('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, NULL, 1, '业务应用服务器', '2026-10-15 23:59:59'),
-('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, NULL, 1, 'Redis缓存服务器', '2025-08-20 23:59:59'),
-('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, NULL, 1, '定时备份服务器（已到期）', '2025-01-15 23:59:59');
-
--- 服务器示例数据（备用 card_type=2）
-INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, expire_time) VALUES
-('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', NULL, '库存', 2, '备用数据库服务器', '2027-06-30 23:59:59'),
-('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', NULL, '已借出', 2, '已借给业务部使用', '2026-09-01 23:59:59'),
-('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', NULL, '库存', 2, '备用缓存服务器', '2027-03-20 23:59:59');
+-- 服务器示例数据（不再区分在用/备用，按状态管理）
+INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, remote_account, remote_pwd, backend_account, backend_pwd, remark, expire_time) VALUES
+('DB-Master-01', '10.0.1.101', '腾讯云', '广州', '数据库组', 'JBSWY3DPEHPK3PXP', 1, 'root', 'dbRoot2026', 'admin', 'admin@db', '主数据库服务器', '2026-12-31 23:59:59'),
+('APP-Server-01', '10.0.1.102', '阿里云', '杭州', '应用组', 'K9RX8TMQZ7HPK3A1', 1, 'root', 'appRoot2026', 'app_admin', 'app@2026', '业务应用服务器', '2026-10-15 23:59:59'),
+('Cache-Server-01', '10.0.1.103', '华为云', '北京', '缓存组', 'M2NV4ZTL6HPK8BX9', 2, 'redis_admin', 'CacheAdmin2026', 'admin', 'admin@cache', 'Redis缓存服务器（维护中）', '2025-08-20 23:59:59'),
+('Backup-Server-01', '10.0.1.104', '物理服务器', '上海', '备份组', 'P7QW6YHR1HPK2CDE', 4, 'backup_admin', 'BkAdmin2026', 'admin', 'admin@backup', '定时备份服务器（已到期）', '2025-01-15 23:59:59'),
+('Spare-Server-01', '10.0.2.101', '腾讯云', '广州', '数据库组', 'A1BC2DEF3HPK4GH5', 3, 'root', 'spareRoot2026', 'admin', 'admin@spare', '备用数据库服务器', '2027-06-30 23:59:59'),
+('Spare-Server-02', '10.0.2.102', '阿里云', '杭州', '应用组', 'B2CD3EFG4HPK5IJ6', 1, 'root', 'appSpare2026', 'admin', 'admin@spare', '备用应用服务器', '2026-09-01 23:59:59'),
+('Spare-Server-03', '10.0.2.103', '华为云', '成都', '缓存组', 'C3DE4FGH5HPK6JK7', 1, 'redis_admin', 'cacheSpare2026', 'admin', 'admin@spare', '备用缓存服务器', '2027-03-20 23:59:59');
 
 -- ============================================================
 -- 服务器字典表（类型/分组/状态等下拉选项可配置）
@@ -258,7 +256,7 @@ INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, m
 DROP TABLE IF EXISTS sys_dict;
 CREATE TABLE sys_dict (
     id BIGINT NOT NULL AUTO_INCREMENT COMMENT '字典ID',
-    dict_type VARCHAR(64) NOT NULL COMMENT '字典类型: server_type/server_group/server_status/stock_status',
+    dict_type VARCHAR(64) NOT NULL COMMENT '字典类型: server_type/server_group/server_status',
     dict_key VARCHAR(64) NOT NULL COMMENT '字典键(存DB的值)',
     dict_value VARCHAR(128) NOT NULL COMMENT '字典值(显示文本)',
     sort_order INT DEFAULT 0 COMMENT '排序',
@@ -280,15 +278,11 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('server_group', '缓存组', '缓存组', 3),
 ('server_group', '备份组', '备份组', 4),
 ('server_group', '其他', '其他', 5),
--- 运行状态（在用服务器用）
+-- 运行状态
 ('server_status', '1', '运行中', 1),
 ('server_status', '2', '维护中', 2),
 ('server_status', '3', '已下线', 3),
-('server_status', '4', '到期', 4),
--- 库存状态（备用服务器用）
-('stock_status', '库存', '库存', 1),
-('stock_status', '已借出', '已借出', 2),
-('stock_status', '报废', '报废', 3);
+('server_status', '4', '到期', 4);
 
 -- ============================================================
 -- 菜单数据
@@ -316,8 +310,7 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 
 -- ========== 服务器管理 ==========
 (30, '服务器管理', '/server', 'Monitor', 0, 3, 1, '', 1),
-(301, '在用服务器', '/server/active', 'Cpu', 30, 1, 1, 'server:active:view', 1),
-(302, '备用服务器', '/server/backup', 'Box', 30, 2, 1, 'server:backup:view', 1),
+(301, '服务器', '/server/list', 'Monitor', 30, 1, 1, 'server:active:view', 1),
 (303, '服务器总览', '/server/overview', 'DataLine', 30, 3, 1, 'server:overview:view', 1),
 
 -- ========== 实名人员管理 ==========
@@ -385,17 +378,11 @@ INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order
 -- 服务器管理按钮权限
 -- ============================================================
 INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
--- 在用服务器按钮(parent_id=301)
-(30101, '在用服务器查询', '', '', 301, 1, 2, 'server:active:view', 1),
-(30102, '在用服务器新增', '', '', 301, 2, 2, 'server:active:add', 1),
-(30103, '在用服务器编辑', '', '', 301, 3, 2, 'server:active:edit', 1),
-(30104, '在用服务器删除', '', '', 301, 4, 2, 'server:active:delete', 1),
-
--- 备用服务器按钮(parent_id=302)
-(30201, '备用服务器查询', '', '', 302, 1, 2, 'server:backup:view', 1),
-(30202, '备用服务器新增', '', '', 302, 2, 2, 'server:backup:add', 1),
-(30203, '备用服务器编辑', '', '', 302, 3, 2, 'server:backup:edit', 1),
-(30204, '备用服务器删除', '', '', 302, 4, 2, 'server:backup:delete', 1),
+-- 服务器按钮(parent_id=301)
+(30101, '服务器查询', '', '', 301, 1, 2, 'server:active:view', 1),
+(30102, '服务器新增', '', '', 301, 2, 2, 'server:active:add', 1),
+(30103, '服务器编辑', '', '', 301, 3, 2, 'server:active:edit', 1),
+(30104, '服务器删除', '', '', 301, 4, 2, 'server:active:delete', 1),
 
 -- 服务器总览按钮(parent_id=303)
 (30301, '服务器总览查询', '', '', 303, 1, 2, 'server:overview:view', 1),
@@ -434,8 +421,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (2, 203), (2, 20301), (2, 20302),                                -- 数据总览(含按钮)
 (2, 204), (2, 20401), (2, 20402), (2, 20403), (2, 20404),       -- 代理商管理(含按钮)
 (2, 30),                                                         -- 服务器管理
-(2, 301), (2, 30101), (2, 30102), (2, 30103), (2, 30104),       -- 在用服务器(含按钮)
-(2, 302), (2, 30201), (2, 30202), (2, 30203), (2, 30204),       -- 备用服务器(含按钮)
+(2, 301), (2, 30101), (2, 30102), (2, 30103), (2, 30104),       -- 服务器(含按钮)
 (2, 303), (2, 30301), (2, 30302),                                -- 服务器总览(含按钮)
 (2, 40),                                                         -- 实名人员管理
 (2, 401), (2, 40101), (2, 40102), (2, 40103), (2, 40104);       -- 实名人员(含按钮)
@@ -455,9 +441,8 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 203),                                                         -- 数据总览(仅查看)
 (3, 204),                                                         -- 代理商管理(仅查看)
 (3, 30),                                                          -- 服务器管理
-(3, 301),                                                         -- 在用服务器(仅查看)
-(3, 302),                                                         -- 备用服务器(仅查看)
-(3, 303),                                                         -- 服务器总览(仅查看)
+(3, 301),                                                          -- 服务器(仅查看)
+(3, 303),                                                          -- 服务器总览(仅查看)
 (3, 40),                                                          -- 实名人员管理
 (3, 401);                                                         -- 实名人员(仅查看)
 

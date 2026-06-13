@@ -11,15 +11,18 @@
         <result column="specs" property="specs"/>
         <result column="mfa_key" property="mfaKey"/>
         <result column="server_status" property="serverStatus"/>
-        <result column="stock_status" property="stockStatus"/>
-        <result column="card_type" property="cardType"/>
+        <result column="remote_account" property="remoteAccount"/>
+        <result column="remote_pwd" property="remotePwd"/>
+        <result column="backend_account" property="backendAccount"/>
+        <result column="backend_pwd" property="backendPwd"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
         <result column="expire_time" property="expireTime"/>
     </resultMap>
 
     <sql id="baseCols">
-        id, server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, expire_time
+        id, server_name, ip_address, server_type, location, specs, mfa_key, server_status,
+        remote_account, remote_pwd, backend_account, backend_pwd, remark, create_time, expire_time
     </sql>
 
     <select id="selectAll" resultMap="ServerMap">
@@ -39,14 +42,8 @@
                      OR ip_address LIKE CONCAT('%', #{keyword}, '%')
                      OR server_type LIKE CONCAT('%', #{keyword}, '%'))
             </if>
-            <if test="cardType != null">
-                AND card_type = #{cardType}
-            </if>
             <if test="serverStatus != null">
                 AND server_status = #{serverStatus}
-            </if>
-            <if test="stockStatus != null and stockStatus != ''">
-                AND stock_status = #{stockStatus}
             </if>
         </where>
         ORDER BY id DESC
@@ -63,29 +60,14 @@
                      OR ip_address LIKE CONCAT('%', #{keyword}, '%')
                      OR server_type LIKE CONCAT('%', #{keyword}, '%'))
             </if>
-            <if test="cardType != null">
-                AND card_type = #{cardType}
-            </if>
             <if test="serverStatus != null">
                 AND server_status = #{serverStatus}
-            </if>
-            <if test="stockStatus != null and stockStatus != ''">
-                AND stock_status = #{stockStatus}
             </if>
         </where>
     </select>
 
     <select id="countTotal" resultType="int">
         SELECT COUNT(*) FROM sys_server
-    </select>
-
-    <select id="countByCardType" resultType="int">
-        SELECT COUNT(*) FROM sys_server
-        <where>
-            <if test="cardType != null">
-                AND card_type = #{cardType}
-            </if>
-        </where>
     </select>
 
     <select id="countByServerStatus" resultType="int">
@@ -98,10 +80,12 @@
     </select>
 
     <insert id="insert" parameterType="com.example.auth.entity.Server" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status, stock_status, card_type, remark, create_time, expire_time)
+        INSERT INTO sys_server (server_name, ip_address, server_type, location, specs, mfa_key, server_status,
+                                remote_account, remote_pwd, backend_account, backend_pwd, remark,
+                                create_time, expire_time)
         VALUES (
-            #{serverName}, #{ipAddress}, #{serverType}, #{location}, #{specs}, #{mfaKey},
-            #{serverStatus}, #{stockStatus}, #{cardType}, #{remark},
+            #{serverName}, #{ipAddress}, #{serverType}, #{location}, #{specs}, #{mfaKey}, #{serverStatus},
+            #{remoteAccount}, #{remotePwd}, #{backendAccount}, #{backendPwd}, #{remark},
             NOW(), #{expireTime}
         )
     </insert>
@@ -116,8 +100,10 @@
             <if test="specs != null">specs = #{specs},</if>
             <if test="mfaKey != null">mfa_key = #{mfaKey},</if>
             <if test="serverStatus != null">server_status = #{serverStatus},</if>
-            <if test="stockStatus != null and stockStatus != ''">stock_status = #{stockStatus},</if>
-            <if test="cardType != null">card_type = #{cardType},</if>
+            <if test="remoteAccount != null">remote_account = #{remoteAccount},</if>
+            <if test="remotePwd != null">remote_pwd = #{remotePwd},</if>
+            <if test="backendAccount != null">backend_account = #{backendAccount},</if>
+            <if test="backendPwd != null">backend_pwd = #{backendPwd},</if>
             <if test="remark != null">remark = #{remark},</if>
             <if test="expireTime != null">expire_time = #{expireTime},</if>
         </set>

@@ -6,7 +6,7 @@ import java.util.Date;
 
 /**
  * 服务器实体
- * 承载 在用服务器 / 备用服务器 统一管理
+ * 在用/备用统一管理，按 server_status 区分状态
  */
 @Data
 public class Server {
@@ -17,9 +17,11 @@ public class Server {
     private String location;      // 所在地区: 广州/杭州/北京/上海/成都 等
     private String specs;         // 所在分组: 数据库组/应用组/缓存组/备份组 等
     private String mfaKey;        // MFA密钥
-    private Integer serverStatus; // 状态（在用服务器用）: 1=运行中 2=维护中 3=已下线 4=到期
-    private String stockStatus;   // 库存状态（备用服务器用）: 库存/已借出/报废
-    private Integer cardType;     // 类型标识: 1=在用 2=备用
+    private Integer serverStatus; // 状态: 1=运行中 2=维护中 3=已下线 4=到期
+    private String remoteAccount; // 远程账号
+    private String remotePwd;     // 远程密码
+    private String backendAccount;// 后台账号
+    private String backendPwd;    // 后台密码
     private String remark;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 服务器管理接口
+ * 服务器管理接口（在用/备用统一管理，根据 server_status 区分）
  * path: /api/server/servers
  */
 @RestController
@@ -38,14 +38,12 @@ public class ServerController {
     @GetMapping
     public Result<PageResult<Server>> list(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer cardType,
             @RequestParam(required = false) Integer serverStatus,
-            @RequestParam(required = false) String stockStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         int offset = (page - 1) * size;
-        List<Server> list = serverMapper.selectByCondition(keyword, cardType, serverStatus, stockStatus, offset, size);
-        int total = serverMapper.countByCondition(keyword, cardType, serverStatus, stockStatus);
+        List<Server> list = serverMapper.selectByCondition(keyword, serverStatus, offset, size);
+        int total = serverMapper.countByCondition(keyword, serverStatus);
         return Result.ok(new PageResult<>(total, list, page, size));
     }
 
@@ -60,7 +58,6 @@ public class ServerController {
         if (server.getServerName() == null || server.getServerName().trim().isEmpty()) {
             return Result.fail("服务器名称不能为空");
         }
-        if (server.getCardType() == null) server.setCardType(1);
         int rows = serverMapper.insert(server);
         logUtil.logAdd(MODULE_NAME, server.getId(), server.getServerName(), server, currentUser(request));
         Map<String, Object> data = new HashMap<>();
