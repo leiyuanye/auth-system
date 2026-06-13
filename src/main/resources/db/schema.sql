@@ -364,3 +364,44 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (1, 50), (1, 501), (1, 50101), (1, 50102), (1, 50103), (1, 50104),
 (2, 50), (2, 501), (2, 50101), (2, 50102), (2, 50103), (2, 50104),
 (3, 50), (3, 501);
+
+-- ============================================================
+-- 商标管理
+-- ============================================================
+DROP TABLE IF EXISTS we_trademark;
+CREATE TABLE we_trademark (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    trademark_name VARCHAR(255) DEFAULT NULL,    -- 商标名称
+    trademark_no VARCHAR(128) DEFAULT NULL,      -- 商标号
+    category VARCHAR(128) DEFAULT NULL,          -- 分类
+    sub_category VARCHAR(255) DEFAULT NULL,      -- 小类名称
+    valid_date DATE DEFAULT NULL,                -- 有效期
+    company_name VARCHAR(255) DEFAULT NULL,      -- 所属公司
+    remark VARCHAR(512) DEFAULT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_trademark_name (trademark_name),
+    KEY idx_trademark_no (trademark_no),
+    KEY idx_category (category),
+    KEY idx_company_name (company_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO we_trademark (trademark_name, trademark_no, category, sub_category, valid_date, company_name, remark) VALUES
+('示例商标A', '12345678', '第25类', '服装鞋帽', '2030-12-31', '示例科技有限公司', '主要用于品牌宣传'),
+('示例商标B', '98765432', '第35类', '广告销售', '2028-06-30', '示例电商集团股份有限公司', '核心品牌商标');
+
+-- 商标管理菜单 (parent_id=50, 挂在企微主体管理分组下)
+INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+(502, '商标管理', '/wecorp/trademark', 'Goods', 50, 2, 1, 'trademark:list:view', 1);
+
+INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+(50201, '商标查询', '', '', 502, 1, 2, 'trademark:list:view', 1),
+(50202, '商标新增', '', '', 502, 2, 2, 'trademark:list:add', 1),
+(50203, '商标编辑', '', '', 502, 3, 2, 'trademark:list:edit', 1),
+(50204, '商标删除', '', '', 502, 4, 2, 'trademark:list:delete', 1);
+
+INSERT INTO sys_role_menu (role_id, menu_id) VALUES
+(1, 502), (1, 50201), (1, 50202), (1, 50203), (1, 50204),
+(2, 502), (2, 50201), (2, 50202), (2, 50203), (2, 50204),
+(3, 502);
