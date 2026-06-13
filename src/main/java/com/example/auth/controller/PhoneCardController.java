@@ -10,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -101,115 +102,103 @@ public class PhoneCardController {
      * 导出手机卡数据为 Excel
      */
     @GetMapping("/export")
-    public void exportExcel(
+    public StreamingResponseBody exportExcel(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer operatorType,
             @RequestParam(required = false) Integer usageStatus,
             @RequestParam(required = false) Integer cardStatus,
             HttpServletResponse response) {
-        try {
-            List<PhoneCard> list = cardMapper.selectByCondition(keyword, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
-            Workbook wb = new XSSFWorkbook();
-            Sheet sheet = wb.createSheet("手机卡数据");
-            CellStyle headerStyle = wb.createCellStyle();
-            Font headerFont = wb.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        List<PhoneCard> list = cardMapper.selectByCondition(keyword, usageStatus, cardStatus, operatorType, null, 0, Integer.MAX_VALUE);
+        String filename = "手机卡数据_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
+        return outputStream -> {
+            try (Workbook wb = new XSSFWorkbook()) {
+                Sheet sheet = wb.createSheet("手机卡数据");
+                CellStyle headerStyle = wb.createCellStyle();
+                Font headerFont = wb.createFont();
+                headerFont.setBold(true);
+                headerStyle.setFont(headerFont);
+                headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            // 表头
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < EXPORT_HEADERS.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(EXPORT_HEADERS[i]);
-                cell.setCellStyle(headerStyle);
+                Row headerRow = sheet.createRow(0);
+                for (int i = 0; i < EXPORT_HEADERS.length; i++) {
+                    Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(EXPORT_HEADERS[i]);
+                    cell.setCellStyle(headerStyle);
+                }
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                int rowIdx = 1;
+                for (PhoneCard card : list) {
+                    Row row = sheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(card.getIccd() != null ? card.getIccd() : "");
+                    row.createCell(1).setCellValue(operatorText(card.getOperatorType()));
+                    row.createCell(2).setCellValue(usageText(card.getUsageStatus()));
+                    row.createCell(3).setCellValue(cardStatusText(card.getCardStatus()));
+                    row.createCell(4).setCellValue(card.getAgentName() != null ? card.getAgentName() : "");
+                    row.createCell(5).setCellValue(card.getPhoneNumber() != null ? card.getPhoneNumber() : "");
+                    row.createCell(6).setCellValue(card.getRealnameName() != null ? card.getRealnameName() : "");
+                    row.createCell(7).setCellValue(card.getRemark() != null ? card.getRemark() : "");
+                    row.createCell(8).setCellValue(card.getCreateTime() != null ? sdf.format(card.getCreateTime()) : "");
+                    row.createCell(9).setCellValue(card.getUpdateTime() != null ? sdf.format(card.getUpdateTime()) : "");
+                }
+
+                for (int i = 0; i < EXPORT_HEADERS.length; i++) {
+                    sheet.autoSizeColumn(i);
+                }
+
+                wb.write(outputStream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            int rowIdx = 1;
-            for (PhoneCard card : list) {
-                Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(card.getIccd() != null ? card.getIccd() : "");
-                row.createCell(1).setCellValue(operatorText(card.getOperatorType()));
-                row.createCell(2).setCellValue(usageText(card.getUsageStatus()));
-                row.createCell(3).setCellValue(cardStatusText(card.getCardStatus()));
-                row.createCell(4).setCellValue(card.getAgentName() != null ? card.getAgentName() : "");
-                row.createCell(5).setCellValue(card.getPhoneNumber() != null ? card.getPhoneNumber() : "");
-                row.createCell(6).setCellValue(card.getRealnameName() != null ? card.getRealnameName() : "");
-                row.createCell(7).setCellValue(card.getRemark() != null ? card.getRemark() : "");
-                row.createCell(8).setCellValue(card.getCreateTime() != null ? sdf.format(card.getCreateTime()) : "");
-                row.createCell(9).setCellValue(card.getUpdateTime() != null ? sdf.format(card.getUpdateTime()) : "");
-            }
-
-            // 自动列宽
-            for (int i = 0; i < EXPORT_HEADERS.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            String filename = "手机卡数据_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".xlsx";
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
-            response.setHeader("Content-Transfer-Encoding", "binary");
-            OutputStream out = response.getOutputStream();
-            wb.write(out);
-            out.flush();
-            wb.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        };
     }
 
     /**
      * 下载导入模板
      */
     @GetMapping("/template")
-    public void downloadTemplate(HttpServletResponse response) {
-        try {
-            Workbook wb = new XSSFWorkbook();
-            Sheet sheet = wb.createSheet("手机卡导入模板");
-            CellStyle headerStyle = wb.createCellStyle();
-            Font headerFont = wb.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+    public StreamingResponseBody downloadTemplate(HttpServletResponse response) {
+        String filename = "手机卡导入模板.xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
+        return outputStream -> {
+            try (Workbook wb = new XSSFWorkbook()) {
+                Sheet sheet = wb.createSheet("手机卡导入模板");
+                CellStyle headerStyle = wb.createCellStyle();
+                Font headerFont = wb.createFont();
+                headerFont.setBold(true);
+                headerStyle.setFont(headerFont);
+                headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            // 表头
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < IMPORT_HEADERS.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(IMPORT_HEADERS[i]);
-                cell.setCellStyle(headerStyle);
+                Row headerRow = sheet.createRow(0);
+                for (int i = 0; i < IMPORT_HEADERS.length; i++) {
+                    Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(IMPORT_HEADERS[i]);
+                    cell.setCellStyle(headerStyle);
+                }
+
+                CellStyle textStyle = wb.createCellStyle();
+                DataFormat dataFormat = wb.createDataFormat();
+                textStyle.setDataFormat(dataFormat.getFormat("@"));
+                sheet.setDefaultColumnStyle(0, textStyle);
+                sheet.setColumnWidth(0, 22 * 256);
+                for (int i = 1; i < IMPORT_HEADERS.length; i++) {
+                    sheet.setColumnWidth(i, 16 * 256);
+                }
+
+                Row exampleRow = sheet.createRow(1);
+                String[] exampleValues = {"89860012345678901234", "移动", "在用", "正常", "XX科技有限公司", "13800000000", "张三", "备注"};
+                for (int i = 0; i < exampleValues.length; i++) {
+                    exampleRow.createCell(i).setCellValue(exampleValues[i]);
+                }
+
+                wb.write(outputStream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-
-            // ICCID 列设置为文本格式，避免长数字精度丢失
-            CellStyle textStyle = wb.createCellStyle();
-            DataFormat dataFormat = wb.createDataFormat();
-            textStyle.setDataFormat(dataFormat.getFormat("@"));
-            sheet.setDefaultColumnStyle(0, textStyle);
-            sheet.setColumnWidth(0, 22 * 256);
-
-            for (int i = 1; i < IMPORT_HEADERS.length; i++) {
-                sheet.setColumnWidth(i, 16 * 256);
-            }
-
-            // 示例行
-            Row exampleRow = sheet.createRow(1);
-            String[] exampleValues = {"89860012345678901234", "移动", "在用", "正常", "XX科技有限公司", "13800000000", "张三", "备注"};
-            for (int i = 0; i < exampleValues.length; i++) {
-                exampleRow.createCell(i).setCellValue(exampleValues[i]);
-            }
-
-            String filename = "手机卡导入模板.xlsx";
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
-            response.setHeader("Content-Transfer-Encoding", "binary");
-            OutputStream out = response.getOutputStream();
-            wb.write(out);
-            out.flush();
-            wb.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        };
     }
 
     /**
