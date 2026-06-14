@@ -39,12 +39,17 @@ public class PhoneDeviceController {
             @RequestParam(required = false) Integer wxStatus,
             @RequestParam(required = false) Integer phoneType,
             @RequestParam(required = false) String entityName,
+            @RequestParam(required = false) String wechatPerson,
+            @RequestParam(required = false) String phoneLocation,
+            @RequestParam(required = false) String deviceCode,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "200") int size) {
         int offset = (page - 1) * size;
         return Result.ok(new PageResult<>(
-                deviceMapper.countByCondition(keyword, wechatStatus, useStatus, dept, wxStatus, phoneType, entityName),
-                deviceMapper.selectByCondition(keyword, wechatStatus, useStatus, dept, wxStatus, phoneType, entityName, offset, size),
+                deviceMapper.countByCondition(keyword, wechatStatus, useStatus, dept, wxStatus, phoneType,
+                        entityName, wechatPerson, phoneLocation, deviceCode),
+                deviceMapper.selectByCondition(keyword, wechatStatus, useStatus, dept, wxStatus, phoneType,
+                        entityName, wechatPerson, phoneLocation, deviceCode, offset, size),
                 page, size));
     }
 
@@ -75,6 +80,7 @@ public class PhoneDeviceController {
         if (device.getWxStatus() == null) device.setWxStatus(1);
         if (device.getWxUsage() == null) device.setWxUsage(1);
         if (device.getPhoneType() == null) device.setPhoneType(1);
+        device.parseFromPhoneNo();
         deviceMapper.insert(device);
         logUtil.logAdd(MODULE_NAME, device.getId(), device.getPhoneNo(), device, currentUser(request));
         Map<String, Object> data = new HashMap<>();
@@ -86,6 +92,7 @@ public class PhoneDeviceController {
     public Result<Void> update(@PathVariable Long id, @RequestBody PhoneDevice device, HttpServletRequest request) {
         PhoneDevice old = deviceMapper.selectById(id);
         device.setId(id);
+        device.parseFromPhoneNo();
         deviceMapper.update(device);
         logUtil.logUpdate(MODULE_NAME, id, device.getPhoneNo(), old, device, currentUser(request));
         return Result.ok(null);

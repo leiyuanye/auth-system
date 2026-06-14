@@ -20,6 +20,9 @@ public interface PhoneDeviceMapper {
             @Param("wxStatus") Integer wxStatus,
             @Param("phoneType") Integer phoneType,
             @Param("entityName") String entityName,
+            @Param("wechatPerson") String wechatPerson,
+            @Param("phoneLocation") String phoneLocation,
+            @Param("deviceCode") String deviceCode,
             @Param("offset") Integer offset,
             @Param("limit") Integer limit);
 
@@ -30,7 +33,10 @@ public interface PhoneDeviceMapper {
             @Param("dept") Integer dept,
             @Param("wxStatus") Integer wxStatus,
             @Param("phoneType") Integer phoneType,
-            @Param("entityName") String entityName);
+            @Param("entityName") String entityName,
+            @Param("wechatPerson") String wechatPerson,
+            @Param("phoneLocation") String phoneLocation,
+            @Param("deviceCode") String deviceCode);
 
     // 下拉选项 - 实名人
     List<String> selectRealnameOptions();
