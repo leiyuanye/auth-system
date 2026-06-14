@@ -28,9 +28,9 @@ CREATE TABLE phone_device_archive (
     remark VARCHAR(512) DEFAULT NULL COMMENT '备注',
     create_time DATETIME DEFAULT NULL COMMENT '原创建时间',
     update_time DATETIME DEFAULT NULL COMMENT '原最后更新时间',
-    archive_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '归档时间',
+    archive_time DATETIME DEFAULT NULL COMMENT '归档时间',
     PRIMARY KEY (id),
     KEY idx_device_code (device_code),
     KEY idx_account_type (account_type),
     KEY idx_archive_time (archive_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='手机设备-作废账号归档表（仅用于统计，不可在别处引用）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='手机设备-作废账号归档表';
