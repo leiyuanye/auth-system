@@ -197,7 +197,8 @@ public class PhoneDeviceController {
 
         String deviceCode = device.getDeviceCode().trim();
         device.setDeviceCode(deviceCode);
-        if (device.getPhoneNo() != null) device.setPhoneNo(device.getPhoneNo().trim());
+        // 完整编号由后端自动生成 = 设备编码
+        device.setPhoneNo(deviceCode);
 
         // 摩托罗拉命名规范：必须以 "MT" 开头（不区分大小写）
         if (PHONE_TYPE_MOTOROLA == device.getPhoneType() && !deviceCode.toUpperCase().startsWith(MOTOROLA_PREFIX)) {
@@ -223,8 +224,11 @@ public class PhoneDeviceController {
             return Result.fail("记录不存在");
         }
         device.setId(id);
-        if (device.getDeviceCode() != null) device.setDeviceCode(device.getDeviceCode().trim());
-        if (device.getPhoneNo() != null) device.setPhoneNo(device.getPhoneNo().trim());
+        if (device.getDeviceCode() != null) {
+            String dc = device.getDeviceCode().trim();
+            device.setDeviceCode(dc);
+            device.setPhoneNo(dc);
+        }
 
         deviceMapper.update(device);
         logUtil.logUpdate(MODULE_NAME, id, device.getDeviceCode(), old, device, currentUser(request));
@@ -311,12 +315,8 @@ public class PhoneDeviceController {
         if (account.getWxStatus() == null) account.setWxStatus(1);
         if (account.getWxUsage() == null) account.setWxUsage(1);
         if (account.getPhoneType() == null) account.setPhoneType(1);
-        if (account.getPhoneNo() != null) account.setPhoneNo(account.getPhoneNo().trim());
-
-        // 若 phoneNo 为空，自动按 "deviceCode-accountIndex" 格式生成编号
-        if (account.getPhoneNo() == null || account.getPhoneNo().isEmpty()) {
-            account.setPhoneNo(deviceCode + "-" + accountIndex);
-        }
+        // 子号完整编号由后端自动生成 = deviceCode + "-" + accountIndex
+        account.setPhoneNo(deviceCode + "-" + accountIndex);
 
         subAccountMapper.insert(account);
         logUtil.logAdd(MODULE_NAME, account.getId(),
@@ -341,7 +341,10 @@ public class PhoneDeviceController {
         account.setId(id);
         if (account.getDeviceCode() != null) account.setDeviceCode(account.getDeviceCode().trim());
         if (account.getAccountIndex() != null) account.setAccountIndex(account.getAccountIndex().trim());
-        if (account.getPhoneNo() != null) account.setPhoneNo(account.getPhoneNo().trim());
+        // 子号完整编号 = deviceCode + "-" + accountIndex
+        String dc = account.getDeviceCode() != null ? account.getDeviceCode() : old.getDeviceCode();
+        String ai = account.getAccountIndex() != null ? account.getAccountIndex() : old.getAccountIndex();
+        account.setPhoneNo(dc + "-" + ai);
 
         subAccountMapper.update(account);
         logUtil.logUpdate(MODULE_NAME, id,
