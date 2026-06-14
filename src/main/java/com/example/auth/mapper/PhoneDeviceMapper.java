@@ -46,4 +46,6 @@ public interface PhoneDeviceMapper {
     List<String> selectPhoneNumberOptions();
     // 下拉选项 - 主设备编码（新增子号时选择）
     List<String> selectDeviceCodeOptions();
+    // 下拉选项 - 仅摩托罗拉类型的主设备编码（只有摩托罗拉可以挂子号）
+    List<String> selectMotorolaDeviceCodeOptions();
 }

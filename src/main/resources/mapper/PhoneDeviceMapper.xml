@@ -160,6 +160,14 @@
         ORDER BY device_code
     </select>
 
+    <!-- 仅摩托罗拉类型 (phone_type=3) 的设备可以挂子号 -->
+    <select id="selectMotorolaDeviceCodeOptions" resultType="string">
+        SELECT device_code FROM phone_device
+        WHERE device_code IS NOT NULL AND device_code != ''
+          AND phone_type = 3
+        ORDER BY device_code
+    </select>
+
     <!-- ============ 新增 ============ -->
     <insert id="insert" parameterType="com.example.auth.entity.PhoneDevice" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO phone_device (

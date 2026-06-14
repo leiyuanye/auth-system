@@ -37,6 +37,8 @@ public class PhoneDeviceController {
 
     private static final String MODULE_NAME = "手机设备管理";
     private static final int MAX_SUB_ACCOUNTS = 5;
+    private static final int PHONE_TYPE_MOTOROLA = 3;
+    private static final String MOTOROLA_PREFIX = "MT";
 
     private String currentUser(HttpServletRequest request) {
         Object u = request.getAttribute("username");
@@ -143,6 +145,14 @@ public class PhoneDeviceController {
     }
 
     /**
+     * 仅返回摩托罗拉类型的主设备编码（只有摩托罗拉可以挂子号）
+     */
+    @GetMapping("/api/phone/devices/options/device-codes/motorola")
+    public Result<List<String>> getMotorolaDeviceCodeOptions() {
+        return Result.ok(deviceMapper.selectMotorolaDeviceCodeOptions());
+    }
+
+    /**
      * 返回某个主设备的子账号数量 + 已占用槽位
      */
     @GetMapping("/api/phone/sub-accounts/device-status/{deviceCode}")
@@ -185,8 +195,14 @@ public class PhoneDeviceController {
         if (device.getWxUsage() == null) device.setWxUsage(1);
         if (device.getPhoneType() == null) device.setPhoneType(1);
 
-        device.setDeviceCode(device.getDeviceCode().trim());
+        String deviceCode = device.getDeviceCode().trim();
+        device.setDeviceCode(deviceCode);
         if (device.getPhoneNo() != null) device.setPhoneNo(device.getPhoneNo().trim());
+
+        // 摩托罗拉命名规范：必须以 "MT" 开头（不区分大小写）
+        if (PHONE_TYPE_MOTOROLA == device.getPhoneType() && !deviceCode.toUpperCase().startsWith(MOTOROLA_PREFIX)) {
+            return Result.fail("摩托罗拉设备的设备编码必须以 \"MT\" 开头，例如 MT601、MT602");
+        }
 
         deviceMapper.insert(device);
         logUtil.logAdd(MODULE_NAME, device.getId(), device.getDeviceCode(), device, currentUser(request));
@@ -246,8 +262,9 @@ public class PhoneDeviceController {
         }
 
         String deviceCode = account.getDeviceCode().trim();
+        String accountIndex = account.getAccountIndex().trim();
         account.setDeviceCode(deviceCode);
-        account.setAccountIndex(account.getAccountIndex().trim());
+        account.setAccountIndex(accountIndex);
 
         // 校验主设备存在
         PhoneDevice device = deviceMapper.selectByDeviceCode(deviceCode);
@@ -255,10 +272,36 @@ public class PhoneDeviceController {
             return Result.fail("主设备「" + deviceCode + "」不存在，请先添加主设备");
         }
 
+        // 只有摩托罗拉类型的设备可以添加子号
+        if (device.getPhoneType() == null || PHONE_TYPE_MOTOROLA != device.getPhoneType()) {
+            return Result.fail("只有摩托罗拉类型的设备才能添加子号，当前设备类型为：" + (device.getPhoneType() == null ? "未设置" : device.getPhoneType()));
+        }
+
+        // 槽位必须是 1~5 的数字
+        int slot;
+        try {
+            slot = Integer.parseInt(accountIndex);
+        } catch (NumberFormatException e) {
+            return Result.fail("账号槽位必须是 1~5 的数字");
+        }
+        if (slot < 1 || slot > MAX_SUB_ACCOUNTS) {
+            return Result.fail("账号槽位必须是 1~5 的数字");
+        }
+
         // 校验最多 5 个子账号
         int count = subAccountMapper.countByDeviceCode(deviceCode);
         if (count >= MAX_SUB_ACCOUNTS) {
             return Result.fail("主设备「" + deviceCode + "」最多只能添加 " + MAX_SUB_ACCOUNTS + " 个子账号");
+        }
+
+        // 槽位不能重复
+        java.util.List<PhoneSubAccount> existing = subAccountMapper.selectByDeviceCode(deviceCode);
+        if (existing != null) {
+            for (PhoneSubAccount s : existing) {
+                if (accountIndex.equals(s.getAccountIndex())) {
+                    return Result.fail("该设备下槽位 " + accountIndex + " 已被占用，请选择其他槽位");
+                }
+            }
         }
 
         if (account.getWechatStatus() == null) account.setWechatStatus(1);
@@ -269,6 +312,11 @@ public class PhoneDeviceController {
         if (account.getWxUsage() == null) account.setWxUsage(1);
         if (account.getPhoneType() == null) account.setPhoneType(1);
         if (account.getPhoneNo() != null) account.setPhoneNo(account.getPhoneNo().trim());
+
+        // 若 phoneNo 为空，自动按 "deviceCode-accountIndex" 格式生成编号
+        if (account.getPhoneNo() == null || account.getPhoneNo().isEmpty()) {
+            account.setPhoneNo(deviceCode + "-" + accountIndex);
+        }
 
         subAccountMapper.insert(account);
         logUtil.logAdd(MODULE_NAME, account.getId(),
