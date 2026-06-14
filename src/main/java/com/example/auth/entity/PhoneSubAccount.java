@@ -4,17 +4,18 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 手机设备主表（每个物理设备一条记录）
- * device_code 作为物理设备唯一标识
- * 包含该设备上的主账号信息（企微/微信等）
+ * 手机设备子账号表
+ * 每个主设备最多关联 5 个子账号
+ * 通过 device_code 关联主设备表 phone_device
  */
 @Data
-public class PhoneDevice {
+public class PhoneSubAccount {
     private Long id;
-    private String deviceCode;       // 物理设备编码（唯一，必填），如 "MT101"
-    private String phoneNo;          // 主号编号（可选），如 "MT101主"
+    private String deviceCode;       // 关联主设备的 device_code（必填）
+    private String accountIndex;     // 账号槽位（必填）：1/2/3/4/5
+    private String phoneNo;          // 完整手机编号，如 "MT101-1"
     private String wechatNickname;   // 企微对外昵称
-    private String entityName;       // 主体简称（多选逗号分隔）
+    private String entityName;       // 主体简称（逗号分隔）
     private String wechatPerson;     // 企微实名人
     private String wechatPhone;      // 企微手机号
     private String phoneLocation;    // 手机位置

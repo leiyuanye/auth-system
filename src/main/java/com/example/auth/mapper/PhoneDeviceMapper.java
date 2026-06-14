@@ -8,10 +8,12 @@ import java.util.List;
 public interface PhoneDeviceMapper {
     List<PhoneDevice> selectAll();
     PhoneDevice selectById(@Param("id") Long id);
+    PhoneDevice selectByDeviceCode(@Param("deviceCode") String deviceCode);
     int insert(PhoneDevice device);
     int update(PhoneDevice device);
     int deleteById(@Param("id") Long id);
 
+    // ===== 带条件的列表查询（用于分组筛选）=====
     List<PhoneDevice> selectByCondition(
             @Param("keyword") String keyword,
             @Param("wechatStatus") Integer wechatStatus,
@@ -42,4 +44,6 @@ public interface PhoneDeviceMapper {
     List<String> selectRealnameOptions();
     // 下拉选项 - 手机号
     List<String> selectPhoneNumberOptions();
+    // 下拉选项 - 主设备编码（新增子号时选择）
+    List<String> selectDeviceCodeOptions();
 }

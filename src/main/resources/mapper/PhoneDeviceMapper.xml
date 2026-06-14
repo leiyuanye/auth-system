@@ -4,9 +4,8 @@
 
     <resultMap id="PhoneDeviceMap" type="com.example.auth.entity.PhoneDevice">
         <id column="id" property="id"/>
-        <result column="phone_no" property="phoneNo"/>
         <result column="device_code" property="deviceCode"/>
-        <result column="account_index" property="accountIndex"/>
+        <result column="phone_no" property="phoneNo"/>
         <result column="wechat_nickname" property="wechatNickname"/>
         <result column="entity_name" property="entityName"/>
         <result column="wechat_person" property="wechatPerson"/>
@@ -28,9 +27,10 @@
     </resultMap>
 
     <sql id="baseColumns">
-        id, phone_no, device_code, account_index, wechat_nickname, entity_name, wechat_person,
-        wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status,
-        wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark, create_time, update_time
+        id, device_code, phone_no, wechat_nickname, entity_name, wechat_person,
+        wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage,
+        wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark,
+        create_time, update_time
     </sql>
 
     <!-- ============ 查询 ============ -->
@@ -46,13 +46,21 @@
         WHERE id = #{id}
     </select>
 
+    <select id="selectByDeviceCode" resultMap="PhoneDeviceMap">
+        SELECT <include refid="baseColumns"/>
+        FROM phone_device
+        WHERE device_code = #{deviceCode}
+        LIMIT 1
+    </select>
+
+    <!-- 带条件查询（支持分页，返回主设备列表） -->
     <select id="selectByCondition" resultMap="PhoneDeviceMap">
         SELECT <include refid="baseColumns"/>
         FROM phone_device
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (phone_no LIKE CONCAT('%', #{keyword}, '%')
-                    OR device_code LIKE CONCAT('%', #{keyword}, '%')
+                AND (device_code LIKE CONCAT('%', #{keyword}, '%')
+                    OR phone_no LIKE CONCAT('%', #{keyword}, '%')
                     OR wechat_nickname LIKE CONCAT('%', #{keyword}, '%')
                     OR wechat_person LIKE CONCAT('%', #{keyword}, '%')
                     OR wx_realname LIKE CONCAT('%', #{keyword}, '%')
@@ -86,7 +94,7 @@
                 AND device_code = #{deviceCode}
             </if>
         </where>
-        ORDER BY device_code, (account_index = '主') DESC, CAST(account_index AS UNSIGNED), id DESC
+        ORDER BY device_code, id DESC
         <if test="offset != null and limit != null">
             LIMIT #{offset}, #{limit}
         </if>
@@ -96,8 +104,8 @@
         SELECT COUNT(*) FROM phone_device
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (phone_no LIKE CONCAT('%', #{keyword}, '%')
-                    OR device_code LIKE CONCAT('%', #{keyword}, '%')
+                AND (device_code LIKE CONCAT('%', #{keyword}, '%')
+                    OR phone_no LIKE CONCAT('%', #{keyword}, '%')
                     OR wechat_nickname LIKE CONCAT('%', #{keyword}, '%')
                     OR wechat_person LIKE CONCAT('%', #{keyword}, '%')
                     OR wx_realname LIKE CONCAT('%', #{keyword}, '%')
@@ -146,24 +154,32 @@
         ORDER BY phone_number
     </select>
 
+    <select id="selectDeviceCodeOptions" resultType="string">
+        SELECT device_code FROM phone_device
+        WHERE device_code IS NOT NULL AND device_code != ''
+        ORDER BY device_code
+    </select>
+
     <!-- ============ 新增 ============ -->
     <insert id="insert" parameterType="com.example.auth.entity.PhoneDevice" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO phone_device (phone_no, device_code, account_index, wechat_nickname, entity_name,
-            wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage,
-            wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark, create_time)
-        VALUES (#{phoneNo}, #{deviceCode}, #{accountIndex}, #{wechatNickname}, #{entityName},
-            #{wechatPerson}, #{wechatPhone}, #{phoneLocation}, #{wechatStatus}, #{useStatus}, #{dept},
+        INSERT INTO phone_device (
+            device_code, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone,
+            phone_location, wechat_status, use_status, dept, wechat_usage, wx_status, wx_usage,
+            phone_type, wx_realname, wx_phone, wx_password, remark, create_time
+        ) VALUES (
+            #{deviceCode}, #{phoneNo}, #{wechatNickname}, #{entityName}, #{wechatPerson},
+            #{wechatPhone}, #{phoneLocation}, #{wechatStatus}, #{useStatus}, #{dept},
             #{wechatUsage}, #{wxStatus}, #{wxUsage}, #{phoneType}, #{wxRealname}, #{wxPhone},
-            #{wxPassword}, #{remark}, NOW())
+            #{wxPassword}, #{remark}, NOW()
+        )
     </insert>
 
     <!-- ============ 更新 ============ -->
     <update id="update" parameterType="com.example.auth.entity.PhoneDevice">
         UPDATE phone_device
         <set>
-            <if test="phoneNo != null">phone_no = #{phoneNo},</if>
             <if test="deviceCode != null">device_code = #{deviceCode},</if>
-            <if test="accountIndex != null">account_index = #{accountIndex},</if>
+            <if test="phoneNo != null">phone_no = #{phoneNo},</if>
             <if test="wechatNickname != null">wechat_nickname = #{wechatNickname},</if>
             <if test="entityName != null">entity_name = #{entityName},</if>
             <if test="wechatPerson != null">wechat_person = #{wechatPerson},</if>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.auth.mapper.PhoneSubAccountMapper">
+
+    <resultMap id="PhoneSubAccountMap" type="com.example.auth.entity.PhoneSubAccount">
+        <id column="id" property="id"/>
+        <result column="device_code" property="deviceCode"/>
+        <result column="account_index" property="accountIndex"/>
+        <result column="phone_no" property="phoneNo"/>
+        <result column="wechat_nickname" property="wechatNickname"/>
+        <result column="entity_name" property="entityName"/>
+        <result column="wechat_person" property="wechatPerson"/>
+        <result column="wechat_phone" property="wechatPhone"/>
+        <result column="phone_location" property="phoneLocation"/>
+        <result column="wechat_status" property="wechatStatus"/>
+        <result column="use_status" property="useStatus"/>
+        <result column="dept" property="dept"/>
+        <result column="wechat_usage" property="wechatUsage"/>
+        <result column="wx_status" property="wxStatus"/>
+        <result column="wx_usage" property="wxUsage"/>
+        <result column="phone_type" property="phoneType"/>
+        <result column="wx_realname" property="wxRealname"/>
+        <result column="wx_phone" property="wxPhone"/>
+        <result column="wx_password" property="wxPassword"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        id, device_code, account_index, phone_no, wechat_nickname, entity_name, wechat_person,
+        wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status,
+        wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark, create_time, update_time
+    </sql>
+
+    <!-- 查询所有子账号 -->
+    <select id="selectAll" resultMap="PhoneSubAccountMap">
+        SELECT <include refid="baseColumns"/>
+        FROM phone_sub_account
+        ORDER BY device_code, CAST(account_index AS UNSIGNED)
+    </select>
+
+    <!-- 按 ID 查询 -->
+    <select id="selectById" resultMap="PhoneSubAccountMap">
+        SELECT <include refid="baseColumns"/>
+        FROM phone_sub_account
+        WHERE id = #{id}
+    </select>
+
+    <!-- 按 device_code 查询该设备的所有子账号 -->
+    <select id="selectByDeviceCode" resultMap="PhoneSubAccountMap">
+        SELECT <include refid="baseColumns"/>
+        FROM phone_sub_account
+        WHERE device_code = #{deviceCode}
+        ORDER BY CAST(account_index AS UNSIGNED), id
+    </select>
+
+    <!-- 统计某个主设备的子账号数量 -->
+    <select id="countByDeviceCode" resultType="int">
+        SELECT COUNT(*) FROM phone_sub_account WHERE device_code = #{deviceCode}
+    </select>
+
+    <!-- 新增子账号 -->
+    <insert id="insert" parameterType="com.example.auth.entity.PhoneSubAccount" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO phone_sub_account (
+            device_code, account_index, phone_no, wechat_nickname, entity_name,
+            wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept,
+            wechat_usage, wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password,
+            remark, create_time
+        ) VALUES (
+            #{deviceCode}, #{accountIndex}, #{phoneNo}, #{wechatNickname}, #{entityName},
+            #{wechatPerson}, #{wechatPhone}, #{phoneLocation}, #{wechatStatus}, #{useStatus}, #{dept},
+            #{wechatUsage}, #{wxStatus}, #{wxUsage}, #{phoneType}, #{wxRealname}, #{wxPhone}, #{wxPassword},
+            #{remark}, NOW()
+        )
+    </insert>
+
+    <!-- 更新子账号 -->
+    <update id="update" parameterType="com.example.auth.entity.PhoneSubAccount">
+        UPDATE phone_sub_account
+        <set>
+            <if test="deviceCode != null">device_code = #{deviceCode},</if>
+            <if test="accountIndex != null">account_index = #{accountIndex},</if>
+            <if test="phoneNo != null">phone_no = #{phoneNo},</if>
+            <if test="wechatNickname != null">wechat_nickname = #{wechatNickname},</if>
+            <if test="entityName != null">entity_name = #{entityName},</if>
+            <if test="wechatPerson != null">wechat_person = #{wechatPerson},</if>
+            <if test="wechatPhone != null">wechat_phone = #{wechatPhone},</if>
+            <if test="phoneLocation != null">phone_location = #{phoneLocation},</if>
+            <if test="wechatStatus != null">wechat_status = #{wechatStatus},</if>
+            <if test="useStatus != null">use_status = #{useStatus},</if>
+            <if test="dept != null">dept = #{dept},</if>
+            <if test="wechatUsage != null">wechat_usage = #{wechatUsage},</if>
+            <if test="wxStatus != null">wx_status = #{wxStatus},</if>
+            <if test="wxUsage != null">wx_usage = #{wxUsage},</if>
+            <if test="phoneType != null">phone_type = #{phoneType},</if>
+            <if test="wxRealname != null">wx_realname = #{wxRealname},</if>
+            <if test="wxPhone != null">wx_phone = #{wxPhone},</if>
+            <if test="wxPassword != null">wx_password = #{wxPassword},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW(),
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 按 ID 删除 -->
+    <delete id="deleteById">
+        DELETE FROM phone_sub_account WHERE id = #{id}
+    </delete>
+
+    <!-- 按 device_code 级联删除 -->
+    <delete id="deleteByDeviceCode">
+        DELETE FROM phone_sub_account WHERE device_code = #{deviceCode}
+    </delete>
+
+</mapper>
