@@ -418,3 +418,94 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (1, 502), (1, 50201), (1, 50202), (1, 50203), (1, 50204),
 (2, 502), (2, 50201), (2, 50202), (2, 50203), (2, 50204),
 (3, 502);
+
+-- ============================================================
+-- 手机设备管理（企微+微信账号信息）
+-- ============================================================
+DROP TABLE IF EXISTS phone_device;
+CREATE TABLE phone_device (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    phone_no VARCHAR(128) DEFAULT NULL,          -- 手机编号（设备标识）
+    wechat_nickname VARCHAR(128) DEFAULT NULL,  -- 企微对外昵称
+    entity_name VARCHAR(255) DEFAULT NULL,        -- 主体简称（多选用逗号分隔）
+    wechat_person VARCHAR(128) DEFAULT NULL,  -- 企微实名人
+    wechat_phone VARCHAR(32) DEFAULT NULL,    -- 企微手机号
+    phone_location VARCHAR(255) DEFAULT NULL,   -- 手机位置（机房/楼层）
+    wechat_status TINYINT DEFAULT 1,         -- 企微状态: 1正常 2已作废 3已注销 4二次人脸
+    use_status TINYINT DEFAULT 1,            -- 使用状态: 1使用中 2外借中 4备用
+    dept TINYINT DEFAULT 1,                  -- 使用部门: 1淘客组 2外卖组
+    wechat_usage TINYINT DEFAULT 1,          -- 企微用途: 1接粉号 2发单号 3备用号 4群主号
+    wx_status TINYINT DEFAULT 1,             -- 微信状态: 1正常 2封禁中
+    wx_usage TINYINT DEFAULT 1,               -- 微信用途: 1视频号 2水军 3公号
+    phone_type TINYINT DEFAULT 1,           -- 手机类型: 1Android 2iPhone 3摩托罗拉
+    wx_realname VARCHAR(128) DEFAULT NULL,     -- 微信实名人
+    wx_phone VARCHAR(32) DEFAULT NULL,       -- 微信手机号
+    wx_password VARCHAR(128) DEFAULT NULL,  -- 微信密码
+    remark VARCHAR(512) DEFAULT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_phone_no (phone_no),
+    KEY idx_wechat_status (wechat_status),
+    KEY idx_use_status (use_status),
+    KEY idx_wx_status (wx_status),
+    KEY idx_phone_type (phone_type),
+    KEY idx_phone_location (phone_location)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO phone_device (phone_no, wechat_nickname, wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark) VALUES
+('P2024-001', '科技A客服01', '张三', '13800138001', 'A机房-1排001', 1, 1, 1, 1, 1, 1, 2, '李四', '13800138002', 'wx_pwd_001', '核心设备'),
+('P2024-002', '电商B客服01', '王五', '13800138003', 'A机房-1排002', 1, 1, 2, 2, 1, 1, 2, '张三', '13800138004', 'wx_pwd_002', '高并发使用'),
+('P2024-003', '备用设备', '赵六', '13800138005', 'B机房-2排015', 1, 4, 1, 3, 2, 1, 3, '孙七', '13800138006', 'wx_pwd_003', '备用设备');
+
+-- 手机设备字典数据
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_wechat_status', '1', '正常', 1),
+('phone_device_wechat_status', '2', '已作废', 2),
+('phone_device_wechat_status', '3', '已注销', 3),
+('phone_device_wechat_status', '4', '二次人脸', 4);
+
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_use_status', '1', '使用中', 1),
+('phone_device_use_status', '2', '外借中', 2),
+('phone_device_use_status', '4', '备用', 3);
+
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_dept', '1', '淘客组', 1),
+('phone_device_dept', '2', '外卖组', 2);
+
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_wechat_usage', '1', '接粉号', 1),
+('phone_device_wechat_usage', '2', '发单号', 2),
+('phone_device_wechat_usage', '3', '备用号', 3),
+('phone_device_wechat_usage', '4', '群主号', 4);
+
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_wx_status', '1', '正常', 1),
+('phone_device_wx_status', '2', '封禁中', 2);
+
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_wx_usage', '1', '视频号', 1),
+('phone_device_wx_usage', '2', '水军', 2),
+('phone_device_wx_usage', '3', '公号', 3);
+
+INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_phone_type', '1', 'Android', 1),
+('phone_device_phone_type', '2', 'iPhone', 2),
+('phone_device_phone_type', '3', '摩托罗拉', 3);
+
+-- 手机设备管理菜单 (parent_id=0 顶级分组)
+INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+(70, '手机设备管理', '/phone/device', 'Smartphone', 0, 2, 1, '', 1),
+(701, '设备列表', '/phone/device/list', 'Iphone', 70, 1, 1, 'phone_device:list:view', 1);
+
+INSERT INTO sys_menu (id, menu_name, menu_path, menu_icon, parent_id, sort_order, menu_type, perm_code, status) VALUES
+(70101, '设备查询', '', '', 701, 1, 2, 'phone_device:list:view', 1),
+(70102, '设备新增', '', '', 701, 2, 2, 'phone_device:list:add', 1),
+(70103, '设备编辑', '', '', 701, 3, 2, 'phone_device:list:edit', 1),
+(70104, '设备删除', '', '', 701, 4, 2, 'phone_device:list:delete', 1);
+
+INSERT INTO sys_role_menu (role_id, menu_id) VALUES
+(1, 70), (1, 701), (1, 70101), (1, 70102), (1, 70103), (1, 70104),
+(2, 70), (2, 701), (2, 70101), (2, 70102), (2, 70103), (2, 70104),
+(3, 70), (3, 701);

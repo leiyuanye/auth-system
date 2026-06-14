@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.auth.mapper.PhoneDeviceMapper">
+
+    <resultMap id="PhoneDeviceMap" type="com.example.auth.entity.PhoneDevice">
+        <id column="id" property="id"/>
+        <result column="phone_no" property="phoneNo"/>
+        <result column="wechat_nickname" property="wechatNickname"/>
+        <result column="entity_name" property="entityName"/>
+        <result column="wechat_person" property="wechatPerson"/>
+        <result column="wechat_phone" property="wechatPhone"/>
+        <result column="phone_location" property="phoneLocation"/>
+        <result column="wechat_status" property="wechatStatus"/>
+        <result column="use_status" property="useStatus"/>
+        <result column="dept" property="dept"/>
+        <result column="wechat_usage" property="wechatUsage"/>
+        <result column="wx_status" property="wxStatus"/>
+        <result column="wx_usage" property="wxUsage"/>
+        <result column="phone_type" property="phoneType"/>
+        <result column="wx_realname" property="wxRealname"/>
+        <result column="wx_phone" property="wxPhone"/>
+        <result column="wx_password" property="wxPassword"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- ============ 查询 ============ -->
+    <select id="selectAll" resultMap="PhoneDeviceMap">
+        SELECT id, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone,
+               phone_location, wechat_status, use_status, dept, wechat_usage, wx_status,
+               wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark,
+               create_time, update_time
+        FROM phone_device
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectById" resultMap="PhoneDeviceMap">
+        SELECT id, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone,
+               phone_location, wechat_status, use_status, dept, wechat_usage, wx_status,
+               wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark,
+               create_time, update_time
+        FROM phone_device
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByCondition" resultMap="PhoneDeviceMap">
+        SELECT id, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone,
+               phone_location, wechat_status, use_status, dept, wechat_usage, wx_status,
+               wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark,
+               create_time, update_time
+        FROM phone_device
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (phone_no LIKE CONCAT('%', #{keyword}, '%')
+                    OR wechat_nickname LIKE CONCAT('%', #{keyword}, '%')
+                    OR wechat_person LIKE CONCAT('%', #{keyword}, '%')
+                    OR wx_realname LIKE CONCAT('%', #{keyword}, '%')
+                    OR phone_location LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="wechatStatus != null">
+                AND wechat_status = #{wechatStatus}
+            </if>
+            <if test="useStatus != null">
+                AND use_status = #{useStatus}
+            </if>
+            <if test="dept != null">
+                AND dept = #{dept}
+            </if>
+            <if test="wxStatus != null">
+                AND wx_status = #{wxStatus}
+            </if>
+            <if test="phoneType != null">
+                AND phone_type = #{phoneType}
+            </if>
+            <if test="entityName != null and entityName != ''">
+                AND entity_name LIKE CONCAT('%', #{entityName}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM phone_device
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (phone_no LIKE CONCAT('%', #{keyword}, '%')
+                    OR wechat_nickname LIKE CONCAT('%', #{keyword}, '%')
+                    OR wechat_person LIKE CONCAT('%', #{keyword}, '%')
+                    OR wx_realname LIKE CONCAT('%', #{keyword}, '%')
+                    OR phone_location LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="wechatStatus != null">
+                AND wechat_status = #{wechatStatus}
+            </if>
+            <if test="useStatus != null">
+                AND use_status = #{useStatus}
+            </if>
+            <if test="dept != null">
+                AND dept = #{dept}
+            </if>
+            <if test="wxStatus != null">
+                AND wx_status = #{wxStatus}
+            </if>
+            <if test="phoneType != null">
+                AND phone_type = #{phoneType}
+            </if>
+            <if test="entityName != null and entityName != ''">
+                AND entity_name LIKE CONCAT('%', #{entityName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- ============ 下拉选项 ============ -->
+    <select id="selectRealnameOptions" resultType="string">
+        SELECT DISTINCT real_name FROM phone_realname
+        WHERE real_name IS NOT NULL AND real_name != ''
+        ORDER BY real_name
+    </select>
+
+    <select id="selectPhoneNumberOptions" resultType="string">
+        SELECT DISTINCT phone_number FROM phone_card
+        WHERE phone_number IS NOT NULL AND phone_number != ''
+        ORDER BY phone_number
+    </select>
+
+    <!-- ============ 新增 ============ -->
+    <insert id="insert" parameterType="com.example.auth.entity.PhoneDevice" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO phone_device (phone_no, wechat_nickname, entity_name, wechat_person,
+            wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage,
+            wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark, create_time)
+        VALUES (#{phoneNo}, #{wechatNickname}, #{entityName}, #{wechatPerson},
+            #{wechatPhone}, #{phoneLocation}, #{wechatStatus}, #{useStatus}, #{dept},
+            #{wechatUsage}, #{wxStatus}, #{wxUsage}, #{phoneType}, #{wxRealname}, #{wxPhone},
+            #{wxPassword}, #{remark}, NOW())
+    </insert>
+
+    <!-- ============ 更新 ============ -->
+    <update id="update" parameterType="com.example.auth.entity.PhoneDevice">
+        UPDATE phone_device
+        <set>
+            <if test="phoneNo != null">phone_no = #{phoneNo},</if>
+            <if test="wechatNickname != null">wechat_nickname = #{wechatNickname},</if>
+            <if test="entityName != null">entity_name = #{entityName},</if>
+            <if test="wechatPerson != null">wechat_person = #{wechatPerson},</if>
+            <if test="wechatPhone != null">wechat_phone = #{wechatPhone},</if>
+            <if test="phoneLocation != null">phone_location = #{phoneLocation},</if>
+            <if test="wechatStatus != null">wechat_status = #{wechatStatus},</if>
+            <if test="useStatus != null">use_status = #{useStatus},</if>
+            <if test="dept != null">dept = #{dept},</if>
+            <if test="wechatUsage != null">wechat_usage = #{wechatUsage},</if>
+            <if test="wxStatus != null">wx_status = #{wxStatus},</if>
+            <if test="wxUsage != null">wx_usage = #{wxUsage},</if>
+            <if test="phoneType != null">phone_type = #{phoneType},</if>
+            <if test="wxRealname != null">wx_realname = #{wxRealname},</if>
+            <if test="wxPhone != null">wx_phone = #{wxPhone},</if>
+            <if test="wxPassword != null">wx_password = #{wxPassword},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW(),
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ============ 删除 ============ -->
+    <delete id="deleteById">
+        DELETE FROM phone_device WHERE id = #{id}
+    </delete>
+
+</mapper>
