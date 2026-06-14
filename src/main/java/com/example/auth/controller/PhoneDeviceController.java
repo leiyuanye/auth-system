@@ -316,6 +316,8 @@ public class PhoneDeviceController {
         if (account.getWxUsage() == null) account.setWxUsage(1);
         // 子号的手机类型必须与主号保持一致（同一台手机登录）
         account.setPhoneType(device.getPhoneType());
+        // 子号的手机位置与主号同步（手机属于主号）
+        account.setPhoneLocation(device.getPhoneLocation());
         // 子号完整编号由后端自动生成 = deviceCode + "-" + accountIndex
         account.setPhoneNo(deviceCode + "-" + accountIndex);
 
@@ -350,6 +352,8 @@ public class PhoneDeviceController {
         PhoneDevice mainDevice = deviceMapper.selectByDeviceCode(dc);
         if (mainDevice != null) {
             account.setPhoneType(mainDevice.getPhoneType());
+            // 子号的手机位置与主号同步
+            account.setPhoneLocation(mainDevice.getPhoneLocation());
         }
 
         subAccountMapper.update(account);
