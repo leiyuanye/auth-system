@@ -314,7 +314,8 @@ public class PhoneDeviceController {
         if (account.getWechatUsage() == null) account.setWechatUsage(1);
         if (account.getWxStatus() == null) account.setWxStatus(1);
         if (account.getWxUsage() == null) account.setWxUsage(1);
-        if (account.getPhoneType() == null) account.setPhoneType(1);
+        // 子号的手机类型必须与主号保持一致（同一台手机登录）
+        account.setPhoneType(device.getPhoneType());
         // 子号完整编号由后端自动生成 = deviceCode + "-" + accountIndex
         account.setPhoneNo(deviceCode + "-" + accountIndex);
 
@@ -345,6 +346,11 @@ public class PhoneDeviceController {
         String dc = account.getDeviceCode() != null ? account.getDeviceCode() : old.getDeviceCode();
         String ai = account.getAccountIndex() != null ? account.getAccountIndex() : old.getAccountIndex();
         account.setPhoneNo(dc + "-" + ai);
+        // 子号的手机类型必须与主号保持一致（同一台手机登录），忽略前端值
+        PhoneDevice mainDevice = deviceMapper.selectByDeviceCode(dc);
+        if (mainDevice != null) {
+            account.setPhoneType(mainDevice.getPhoneType());
+        }
 
         subAccountMapper.update(account);
         logUtil.logUpdate(MODULE_NAME, id,
