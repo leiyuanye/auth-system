@@ -111,6 +111,91 @@ public class PhoneDeviceController {
         return voidWechat.equals(wechatStatus) && voidWx.equals(wxStatus);
     }
 
+    private String getDictValue(String dictType, Integer dictKey) {
+        if (dictKey == null) return null;
+        List<Dict> list = dictMapper.selectByType(dictType);
+        if (list == null) return null;
+        for (Dict d : list) {
+            if (d.getDictKey() != null && String.valueOf(dictKey).equals(d.getDictKey())) {
+                return d.getDictValue();
+            }
+        }
+        return null;
+    }
+
+    private boolean isAccountStatusEnabled(String dictType, Integer status) {
+        if (status == null) return false;
+        String value = getDictValue(dictType, status);
+        return !"无".equals(value);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private String validateAccountFields(Integer wechatStatus, String wechatPhone, Integer wechatUsage,
+                                         Integer wxStatus, String wxPhone, Integer wxUsage, String wxPassword) {
+        if (isAccountStatusEnabled(DICT_WECHAT_STATUS, wechatStatus)) {
+            if (isBlank(wechatPhone)) {
+                return "企微状态不是“无”时，请选择企微手机号";
+            }
+            if (wechatUsage == null) {
+                return "企微状态不是“无”时，请选择企微用途";
+            }
+        }
+
+        if (isAccountStatusEnabled(DICT_WX_STATUS, wxStatus)) {
+            if (isBlank(wxPhone)) {
+                return "微信状态不是“无”时，请选择微信手机号";
+            }
+            if (wxUsage == null) {
+                return "微信状态不是“无”时，请选择微信用途";
+            }
+            if (isBlank(wxPassword)) {
+                return "微信状态不是“无”时，请填写微信密码";
+            }
+        }
+        return null;
+    }
+
+    private String validateDeviceAccountFields(PhoneDevice device) {
+        return validateAccountFields(
+                device.getWechatStatus(), device.getWechatPhone(), device.getWechatUsage(),
+                device.getWxStatus(), device.getWxPhone(), device.getWxUsage(), device.getWxPassword()
+        );
+    }
+
+    private String validateSubAccountFields(PhoneSubAccount account) {
+        return validateAccountFields(
+                account.getWechatStatus(), account.getWechatPhone(), account.getWechatUsage(),
+                account.getWxStatus(), account.getWxPhone(), account.getWxUsage(), account.getWxPassword()
+        );
+    }
+
+    private PhoneDevice mergeDeviceForValidation(PhoneDevice old, PhoneDevice incoming) {
+        PhoneDevice merged = new PhoneDevice();
+        merged.setWechatStatus(incoming.getWechatStatus() != null ? incoming.getWechatStatus() : old.getWechatStatus());
+        merged.setWechatPhone(incoming.getWechatPhone() != null ? incoming.getWechatPhone() : old.getWechatPhone());
+        merged.setWechatUsage(incoming.getWechatUsage() != null ? incoming.getWechatUsage() : old.getWechatUsage());
+        merged.setWxStatus(incoming.getWxStatus() != null ? incoming.getWxStatus() : old.getWxStatus());
+        merged.setWxPhone(incoming.getWxPhone() != null ? incoming.getWxPhone() : old.getWxPhone());
+        merged.setWxUsage(incoming.getWxUsage() != null ? incoming.getWxUsage() : old.getWxUsage());
+        merged.setWxPassword(incoming.getWxPassword() != null ? incoming.getWxPassword() : old.getWxPassword());
+        return merged;
+    }
+
+    private PhoneSubAccount mergeSubAccountForValidation(PhoneSubAccount old, PhoneSubAccount incoming) {
+        PhoneSubAccount merged = new PhoneSubAccount();
+        merged.setWechatStatus(incoming.getWechatStatus() != null ? incoming.getWechatStatus() : old.getWechatStatus());
+        merged.setWechatPhone(incoming.getWechatPhone() != null ? incoming.getWechatPhone() : old.getWechatPhone());
+        merged.setWechatUsage(incoming.getWechatUsage() != null ? incoming.getWechatUsage() : old.getWechatUsage());
+        merged.setWxStatus(incoming.getWxStatus() != null ? incoming.getWxStatus() : old.getWxStatus());
+        merged.setWxPhone(incoming.getWxPhone() != null ? incoming.getWxPhone() : old.getWxPhone());
+        merged.setWxUsage(incoming.getWxUsage() != null ? incoming.getWxUsage() : old.getWxUsage());
+        merged.setWxPassword(incoming.getWxPassword() != null ? incoming.getWxPassword() : old.getWxPassword());
+        return merged;
+    }
+
     // 将主号写入归档表（从原表删除）
     private void archiveMainDevice(PhoneDevice device) {
         PhoneDeviceArchive a = new PhoneDeviceArchive();
@@ -341,6 +426,11 @@ public class PhoneDeviceController {
             return Result.fail("摩托罗拉设备的设备编码必须以 \"MT\" 开头，例如 MT601、MT602");
         }
 
+        String validationMessage = validateDeviceAccountFields(device);
+        if (validationMessage != null) {
+            return Result.fail(validationMessage);
+        }
+
         // 插入前判断：如果两个状态都为"作废"，直接写入归档表
         if (isBothVoid(device.getWechatStatus(), device.getWxStatus())) {
             deviceMapper.insert(device);
@@ -392,6 +482,11 @@ public class PhoneDeviceController {
                 }
                 deviceCodeChanged = true;
             }
+        }
+
+        String validationMessage = validateDeviceAccountFields(mergeDeviceForValidation(old, device));
+        if (validationMessage != null) {
+            return Result.fail(validationMessage);
         }
 
         // 执行更新
@@ -525,6 +620,11 @@ public class PhoneDeviceController {
         // 子号完整编号由后端自动生成 = deviceCode + "-" + accountIndex
         account.setPhoneNo(deviceCode + "-" + accountIndex);
 
+        String validationMessage = validateSubAccountFields(account);
+        if (validationMessage != null) {
+            return Result.fail(validationMessage);
+        }
+
         // 插入前判断：两状态都为"作废" → 写入后直接归档
         if (isBothVoid(account.getWechatStatus(), account.getWxStatus())) {
             subAccountMapper.insert(account);
@@ -573,6 +673,11 @@ public class PhoneDeviceController {
             account.setPhoneType(mainDevice.getPhoneType());
             // 子号的手机位置与主号同步
             account.setPhoneLocation(mainDevice.getPhoneLocation());
+        }
+
+        String validationMessage = validateSubAccountFields(mergeSubAccountForValidation(old, account));
+        if (validationMessage != null) {
+            return Result.fail(validationMessage);
         }
 
         subAccountMapper.update(account);
