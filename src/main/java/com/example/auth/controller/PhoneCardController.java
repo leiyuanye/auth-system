@@ -238,13 +238,17 @@ public class PhoneCardController {
                 if (rowEmpty) continue;
 
                 String iccd = getCellString(row.getCell(0));
-                if (iccd == null || iccd.trim().isEmpty()) continue;
-                iccd = iccd.trim();
-                if (seenIccd.contains(iccd)) {
-                    duplicates.add(iccd);
-                    continue;
+                iccd = iccd == null ? null : iccd.trim();
+                if (iccd != null && iccd.isEmpty()) {
+                    iccd = null;
                 }
-                seenIccd.add(iccd);
+                if (iccd != null) {
+                    if (seenIccd.contains(iccd)) {
+                        duplicates.add(iccd);
+                        continue;
+                    }
+                    seenIccd.add(iccd);
+                }
 
                 PhoneCard card = new PhoneCard();
                 card.setIccd(iccd);
