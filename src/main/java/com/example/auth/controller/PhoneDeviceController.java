@@ -12,14 +12,18 @@ import com.example.auth.mapper.DictMapper;
 import com.example.auth.mapper.PhoneDeviceArchiveMapper;
 import com.example.auth.mapper.PhoneDeviceMapper;
 import com.example.auth.mapper.PhoneSubAccountMapper;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * 手机设备管理（两表结构 + 归档表）
@@ -59,6 +63,11 @@ public class PhoneDeviceController {
     private static final String DICT_WECHAT_STATUS = "phone_device_wechat_status";
     private static final String DICT_WX_STATUS = "phone_device_wx_status";
     private static final String VOID_LABEL = "作废";
+    private static final String[] DEVICE_IMPORT_HEADERS = {
+            "账号类型", "设备编码", "槽位", "企微昵称", "主体简称", "企微实名人", "企微手机号", "手机位置",
+            "企微状态", "使用状态", "使用部门", "企微用途", "微信状态", "微信用途", "手机类型",
+            "微信实名人", "微信手机号", "微信密码", "备注"
+    };
 
     // 缓存"作废"对应的字典 key（避免重复查询）
     private Integer cachedVoidWechatStatusKey = null;
@@ -194,6 +203,150 @@ public class PhoneDeviceController {
         merged.setWxUsage(incoming.getWxUsage() != null ? incoming.getWxUsage() : old.getWxUsage());
         merged.setWxPassword(incoming.getWxPassword() != null ? incoming.getWxPassword() : old.getWxPassword());
         return merged;
+    }
+
+    private void writeHeader(Sheet sheet, Workbook wb) {
+        CellStyle headerStyle = wb.createCellStyle();
+        Font font = wb.createFont();
+        font.setBold(true);
+        headerStyle.setFont(font);
+        Row header = sheet.createRow(0);
+        for (int i = 0; i < DEVICE_IMPORT_HEADERS.length; i++) {
+            Cell cell = header.createCell(i);
+            cell.setCellValue(DEVICE_IMPORT_HEADERS[i]);
+            cell.setCellStyle(headerStyle);
+        }
+    }
+
+    private String labelOrValue(String dictType, Integer value) {
+        if (value == null) return "";
+        String label = getDictValue(dictType, value);
+        return label == null ? String.valueOf(value) : label;
+    }
+
+    private void writeDeviceRow(Row row, String accountType, String accountIndex, PhoneDevice device) {
+        row.createCell(0).setCellValue(accountType);
+        row.createCell(1).setCellValue(defaultString(device.getDeviceCode(), ""));
+        row.createCell(2).setCellValue(accountIndex);
+        row.createCell(3).setCellValue(defaultString(device.getWechatNickname(), ""));
+        row.createCell(4).setCellValue(defaultString(device.getEntityName(), ""));
+        row.createCell(5).setCellValue(defaultString(device.getWechatPerson(), ""));
+        row.createCell(6).setCellValue(defaultString(device.getWechatPhone(), ""));
+        row.createCell(7).setCellValue(defaultString(device.getPhoneLocation(), ""));
+        row.createCell(8).setCellValue(labelOrValue(DICT_WECHAT_STATUS, device.getWechatStatus()));
+        row.createCell(9).setCellValue(labelOrValue("phone_device_use_status", device.getUseStatus()));
+        row.createCell(10).setCellValue(labelOrValue("phone_device_dept", device.getDept()));
+        row.createCell(11).setCellValue(labelOrValue("phone_device_wechat_usage", device.getWechatUsage()));
+        row.createCell(12).setCellValue(labelOrValue(DICT_WX_STATUS, device.getWxStatus()));
+        row.createCell(13).setCellValue(labelOrValue("phone_device_wx_usage", device.getWxUsage()));
+        row.createCell(14).setCellValue(labelOrValue("phone_device_phone_type", device.getPhoneType()));
+        row.createCell(15).setCellValue(defaultString(device.getWxRealname(), ""));
+        row.createCell(16).setCellValue(defaultString(device.getWxPhone(), ""));
+        row.createCell(17).setCellValue(defaultString(device.getWxPassword(), ""));
+        row.createCell(18).setCellValue(defaultString(device.getRemark(), ""));
+    }
+
+    private void writeSubAccountRow(Row row, PhoneSubAccount account) {
+        row.createCell(0).setCellValue("子");
+        row.createCell(1).setCellValue(defaultString(account.getDeviceCode(), ""));
+        row.createCell(2).setCellValue(defaultString(account.getAccountIndex(), ""));
+        row.createCell(3).setCellValue(defaultString(account.getWechatNickname(), ""));
+        row.createCell(4).setCellValue(defaultString(account.getEntityName(), ""));
+        row.createCell(5).setCellValue(defaultString(account.getWechatPerson(), ""));
+        row.createCell(6).setCellValue(defaultString(account.getWechatPhone(), ""));
+        row.createCell(7).setCellValue(defaultString(account.getPhoneLocation(), ""));
+        row.createCell(8).setCellValue(labelOrValue(DICT_WECHAT_STATUS, account.getWechatStatus()));
+        row.createCell(9).setCellValue(labelOrValue("phone_device_use_status", account.getUseStatus()));
+        row.createCell(10).setCellValue(labelOrValue("phone_device_dept", account.getDept()));
+        row.createCell(11).setCellValue(labelOrValue("phone_device_wechat_usage", account.getWechatUsage()));
+        row.createCell(12).setCellValue(labelOrValue(DICT_WX_STATUS, account.getWxStatus()));
+        row.createCell(13).setCellValue(labelOrValue("phone_device_wx_usage", account.getWxUsage()));
+        row.createCell(14).setCellValue(labelOrValue("phone_device_phone_type", account.getPhoneType()));
+        row.createCell(15).setCellValue(defaultString(account.getWxRealname(), ""));
+        row.createCell(16).setCellValue(defaultString(account.getWxPhone(), ""));
+        row.createCell(17).setCellValue(defaultString(account.getWxPassword(), ""));
+        row.createCell(18).setCellValue(defaultString(account.getRemark(), ""));
+    }
+
+    private String defaultString(String value, String defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+
+    private String getCellString(Cell cell) {
+        if (cell == null) return "";
+        DataFormatter formatter = new DataFormatter();
+        return formatter.formatCellValue(cell).trim();
+    }
+
+    private boolean isRowEmpty(Row row, int maxCells) {
+        for (int i = 0; i < maxCells; i++) {
+            if (!isBlank(getCellString(row.getCell(i)))) return false;
+        }
+        return true;
+    }
+
+    private Integer parseDictKey(String dictType, String value, Integer defaultValue) {
+        if (isBlank(value)) return defaultValue;
+        String text = value.trim();
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException ignored) {
+        }
+        List<Dict> list = dictMapper.selectByType(dictType);
+        if (list != null) {
+            for (Dict d : list) {
+                if (text.equals(d.getDictValue())) {
+                    return Integer.parseInt(d.getDictKey());
+                }
+            }
+        }
+        throw new IllegalArgumentException("字典值不存在：" + text);
+    }
+
+    private PhoneDevice buildDeviceFromRow(Row row, String deviceCode) {
+        PhoneDevice device = new PhoneDevice();
+        device.setDeviceCode(deviceCode);
+        device.setPhoneNo(deviceCode);
+        device.setWechatNickname(getCellString(row.getCell(3)));
+        device.setEntityName(getCellString(row.getCell(4)));
+        device.setWechatPerson(getCellString(row.getCell(5)));
+        device.setWechatPhone(getCellString(row.getCell(6)));
+        device.setPhoneLocation(getCellString(row.getCell(7)));
+        device.setWechatStatus(parseDictKey(DICT_WECHAT_STATUS, getCellString(row.getCell(8)), 0));
+        device.setUseStatus(parseDictKey("phone_device_use_status", getCellString(row.getCell(9)), 1));
+        device.setDept(parseDictKey("phone_device_dept", getCellString(row.getCell(10)), 1));
+        device.setWechatUsage(parseDictKey("phone_device_wechat_usage", getCellString(row.getCell(11)), 1));
+        device.setWxStatus(parseDictKey(DICT_WX_STATUS, getCellString(row.getCell(12)), 0));
+        device.setWxUsage(parseDictKey("phone_device_wx_usage", getCellString(row.getCell(13)), 1));
+        device.setPhoneType(parseDictKey("phone_device_phone_type", getCellString(row.getCell(14)), 1));
+        device.setWxRealname(getCellString(row.getCell(15)));
+        device.setWxPhone(getCellString(row.getCell(16)));
+        device.setWxPassword(getCellString(row.getCell(17)));
+        device.setRemark(getCellString(row.getCell(18)));
+        return device;
+    }
+
+    private PhoneSubAccount buildSubAccountFromRow(Row row, String deviceCode, String accountIndex) {
+        PhoneSubAccount account = new PhoneSubAccount();
+        account.setDeviceCode(deviceCode);
+        account.setAccountIndex(accountIndex);
+        account.setWechatNickname(getCellString(row.getCell(3)));
+        account.setEntityName(getCellString(row.getCell(4)));
+        account.setWechatPerson(getCellString(row.getCell(5)));
+        account.setWechatPhone(getCellString(row.getCell(6)));
+        account.setPhoneLocation(getCellString(row.getCell(7)));
+        account.setWechatStatus(parseDictKey(DICT_WECHAT_STATUS, getCellString(row.getCell(8)), 0));
+        account.setUseStatus(parseDictKey("phone_device_use_status", getCellString(row.getCell(9)), 1));
+        account.setDept(parseDictKey("phone_device_dept", getCellString(row.getCell(10)), 1));
+        account.setWechatUsage(parseDictKey("phone_device_wechat_usage", getCellString(row.getCell(11)), 1));
+        account.setWxStatus(parseDictKey(DICT_WX_STATUS, getCellString(row.getCell(12)), 0));
+        account.setWxUsage(parseDictKey("phone_device_wx_usage", getCellString(row.getCell(13)), 1));
+        account.setPhoneType(parseDictKey("phone_device_phone_type", getCellString(row.getCell(14)), PHONE_TYPE_MOTOROLA));
+        account.setWxRealname(getCellString(row.getCell(15)));
+        account.setWxPhone(getCellString(row.getCell(16)));
+        account.setWxPassword(getCellString(row.getCell(17)));
+        account.setRemark(getCellString(row.getCell(18)));
+        return account;
     }
 
     // 将主号写入归档表（从原表删除）
@@ -338,6 +491,151 @@ public class PhoneDeviceController {
     @GetMapping("/api/phone/devices/options/realnames")
     public Result<List<String>> getRealnameOptions() {
         return Result.ok(deviceMapper.selectRealnameOptions());
+    }
+
+    @GetMapping("/api/phone/devices/template")
+    public StreamingResponseBody downloadDeviceTemplate(HttpServletResponse response) throws java.io.UnsupportedEncodingException {
+        String filename = "手机设备导入模板.xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
+        return outputStream -> {
+            try (Workbook wb = new XSSFWorkbook()) {
+                Sheet sheet = wb.createSheet("手机设备导入模板");
+                writeHeader(sheet, wb);
+                String[] exampleValues = {
+                        "主", "TEST002", "", "测试企微02", "科技A", "测试实名人", "13900000001", "测试机架-002",
+                        "正常", "使用中", "淘客组", "接粉号", "正常", "视频号", "Android",
+                        "", "13900000001", "test_wx_002", "导入模板示例"
+                };
+                Row row = sheet.createRow(1);
+                for (int i = 0; i < exampleValues.length; i++) {
+                    row.createCell(i).setCellValue(exampleValues[i]);
+                }
+                for (int i = 0; i < DEVICE_IMPORT_HEADERS.length; i++) {
+                    sheet.autoSizeColumn(i);
+                    sheet.setColumnWidth(i, Math.max(sheet.getColumnWidth(i), 14 * 256));
+                }
+                wb.write(outputStream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    @GetMapping("/api/phone/devices/export")
+    public StreamingResponseBody exportDevices(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer wechatStatus,
+            @RequestParam(required = false) Integer useStatus,
+            @RequestParam(required = false) Integer dept,
+            @RequestParam(required = false) Integer wxStatus,
+            @RequestParam(required = false) Integer phoneType,
+            @RequestParam(required = false) String entityName,
+            @RequestParam(required = false) String wechatPerson,
+            @RequestParam(required = false) String phoneLocation,
+            HttpServletResponse response) throws java.io.UnsupportedEncodingException {
+        List<PhoneDevice> devices = deviceMapper.selectByCondition(
+                keyword, wechatStatus, useStatus, dept, wxStatus, phoneType,
+                entityName, wechatPerson, phoneLocation, null, 0, Integer.MAX_VALUE);
+        String filename = "手机设备数据_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
+        return outputStream -> {
+            try (Workbook wb = new XSSFWorkbook()) {
+                Sheet sheet = wb.createSheet("手机设备数据");
+                writeHeader(sheet, wb);
+                int rowIndex = 1;
+                if (devices != null) {
+                    for (PhoneDevice device : devices) {
+                        writeDeviceRow(sheet.createRow(rowIndex++), "主", "", device);
+                        List<PhoneSubAccount> subs = subAccountMapper.selectByDeviceCode(device.getDeviceCode());
+                        if (subs != null) {
+                            for (PhoneSubAccount sub : subs) {
+                                writeSubAccountRow(sheet.createRow(rowIndex++), sub);
+                            }
+                        }
+                    }
+                }
+                for (int i = 0; i < DEVICE_IMPORT_HEADERS.length; i++) {
+                    sheet.autoSizeColumn(i);
+                    sheet.setColumnWidth(i, Math.max(sheet.getColumnWidth(i), 12 * 256));
+                }
+                wb.write(outputStream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    @PostMapping("/api/phone/devices/import")
+    public Result<Map<String, Object>> importDevices(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        if (file == null || file.isEmpty()) {
+            return Result.fail("请选择要导入的文件");
+        }
+        String filename = file.getOriginalFilename();
+        if (filename == null || (!filename.endsWith(".xlsx") && !filename.endsWith(".xls"))) {
+            return Result.fail("仅支持 .xlsx 或 .xls 格式的 Excel 文件");
+        }
+        int successCount = 0;
+        int failCount = 0;
+        List<String> errors = new ArrayList<>();
+        Set<String> importedMain = new HashSet<>();
+        Set<String> importedSub = new HashSet<>();
+        try (Workbook wb = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = wb.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null || isRowEmpty(row, DEVICE_IMPORT_HEADERS.length)) continue;
+                int line = i + 1;
+                try {
+                    String accountType = defaultString(getCellString(row.getCell(0)), "主").trim();
+                    String deviceCode = getCellString(row.getCell(1));
+                    if (isBlank(deviceCode)) {
+                        throw new IllegalArgumentException("设备编码不能为空");
+                    }
+                    deviceCode = deviceCode.trim();
+                    if (accountType.contains("子")) {
+                        String accountIndex = getCellString(row.getCell(2));
+                        if (isBlank(accountIndex)) {
+                            throw new IllegalArgumentException("子号槽位不能为空");
+                        }
+                        String subKey = deviceCode + "-" + accountIndex.trim();
+                        if (!importedSub.add(subKey)) {
+                            throw new IllegalArgumentException("导入文件内子号重复：" + subKey);
+                        }
+                        PhoneSubAccount account = buildSubAccountFromRow(row, deviceCode, accountIndex.trim());
+                        Result<Map<String, Object>> result = addSubAccount(account, request);
+                        if (result.getCode() == 200) {
+                            successCount++;
+                        } else {
+                            throw new IllegalArgumentException(result.getMessage());
+                        }
+                    } else {
+                        if (!importedMain.add(deviceCode)) {
+                            throw new IllegalArgumentException("导入文件内主号重复：" + deviceCode);
+                        }
+                        PhoneDevice device = buildDeviceFromRow(row, deviceCode);
+                        Result<Map<String, Object>> result = addDevice(device, request);
+                        if (result.getCode() == 200) {
+                            successCount++;
+                        } else {
+                            throw new IllegalArgumentException(result.getMessage());
+                        }
+                    }
+                } catch (Exception ex) {
+                    failCount++;
+                    errors.add("第" + line + "行：" + ex.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            return Result.fail("导入失败: " + e.getMessage());
+        }
+        Map<String, Object> data = new HashMap<>();
+        data.put("successCount", successCount);
+        data.put("failCount", failCount);
+        data.put("total", successCount + failCount);
+        data.put("message", String.join("；", errors));
+        return Result.ok(data);
     }
 
     @GetMapping("/api/phone/devices/options/phone-numbers")
