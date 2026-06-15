@@ -425,6 +425,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 DROP TABLE IF EXISTS phone_device;
 CREATE TABLE phone_device (
     id BIGINT NOT NULL AUTO_INCREMENT,
+    device_code VARCHAR(64) NOT NULL COMMENT '物理设备编码（唯一）',
     phone_no VARCHAR(128) DEFAULT NULL,          -- 手机编号（设备标识）
     wechat_nickname VARCHAR(128) DEFAULT NULL,  -- 企微对外昵称
     entity_name VARCHAR(255) DEFAULT NULL,        -- 主体简称（多选用逗号分隔）
@@ -445,6 +446,8 @@ CREATE TABLE phone_device (
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT NULL,
     PRIMARY KEY (id),
+    UNIQUE KEY uk_device_code (device_code),
+    KEY idx_device_code (device_code),
     KEY idx_phone_no (phone_no),
     KEY idx_wechat_status (wechat_status),
     KEY idx_use_status (use_status),
@@ -453,13 +456,87 @@ CREATE TABLE phone_device (
     KEY idx_phone_location (phone_location)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO phone_device (phone_no, wechat_nickname, wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark) VALUES
-('P2024-001', '科技A客服01', '张三', '13800138001', 'A机房-1排001', 1, 1, 1, 1, 1, 1, 2, '李四', '13800138002', 'wx_pwd_001', '核心设备'),
-('P2024-002', '电商B客服01', '王五', '13800138003', 'A机房-1排002', 1, 1, 2, 2, 1, 1, 2, '张三', '13800138004', 'wx_pwd_002', '高并发使用'),
-('P2024-003', '备用设备', '赵六', '13800138005', 'B机房-2排015', 1, 4, 1, 3, 2, 1, 3, '孙七', '13800138006', 'wx_pwd_003', '备用设备');
+DROP TABLE IF EXISTS phone_sub_account;
+CREATE TABLE phone_sub_account (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    device_code VARCHAR(64) NOT NULL COMMENT '关联主设备的设备编码',
+    account_index VARCHAR(16) NOT NULL COMMENT '账号槽位：1/2/3/4/5',
+    phone_no VARCHAR(128) DEFAULT NULL COMMENT '完整手机编号，如 MT101-1',
+    wechat_nickname VARCHAR(128) DEFAULT NULL COMMENT '企微对外昵称',
+    entity_name VARCHAR(256) DEFAULT NULL COMMENT '主体简称（逗号分隔）',
+    wechat_person VARCHAR(64) DEFAULT NULL COMMENT '企微实名人',
+    wechat_phone VARCHAR(32) DEFAULT NULL COMMENT '企微手机号',
+    phone_location VARCHAR(128) DEFAULT NULL COMMENT '手机位置',
+    wechat_status INT DEFAULT 1 COMMENT '企微状态',
+    use_status INT DEFAULT 1 COMMENT '使用状态',
+    dept INT DEFAULT 1 COMMENT '使用部门',
+    wechat_usage INT DEFAULT 1 COMMENT '企微用途',
+    wx_status INT DEFAULT 1 COMMENT '微信状态',
+    wx_usage INT DEFAULT 1 COMMENT '微信用途',
+    phone_type INT DEFAULT 1 COMMENT '手机类型',
+    wx_realname VARCHAR(64) DEFAULT NULL COMMENT '微信实名人',
+    wx_phone VARCHAR(32) DEFAULT NULL COMMENT '微信手机号',
+    wx_password VARCHAR(128) DEFAULT NULL COMMENT '微信密码',
+    remark VARCHAR(512) DEFAULT NULL COMMENT '备注',
+    create_time DATETIME DEFAULT NULL,
+    update_time DATETIME DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_device_code (device_code),
+    KEY idx_account_index (account_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='手机设备-子账号表';
+
+DROP TABLE IF EXISTS phone_device_archive;
+CREATE TABLE phone_device_archive (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    account_type VARCHAR(16) NOT NULL COMMENT '账号类型：main-主号；sub-子号',
+    device_code VARCHAR(64) NOT NULL COMMENT '设备编码',
+    account_index VARCHAR(16) DEFAULT NULL COMMENT '槽位（子号时必填）',
+    phone_no VARCHAR(128) DEFAULT NULL COMMENT '完整编号',
+    wechat_nickname VARCHAR(128) DEFAULT NULL COMMENT '企微对外昵称',
+    entity_name VARCHAR(256) DEFAULT NULL COMMENT '主体简称',
+    wechat_person VARCHAR(64) DEFAULT NULL COMMENT '企微实名人',
+    wechat_phone VARCHAR(32) DEFAULT NULL COMMENT '企微手机号',
+    phone_location VARCHAR(128) DEFAULT NULL COMMENT '手机位置',
+    wechat_status INT DEFAULT NULL COMMENT '企微状态',
+    use_status INT DEFAULT NULL COMMENT '使用状态',
+    dept INT DEFAULT NULL COMMENT '使用部门',
+    wechat_usage INT DEFAULT NULL COMMENT '企微用途',
+    wx_status INT DEFAULT NULL COMMENT '微信状态',
+    wx_usage INT DEFAULT NULL COMMENT '微信用途',
+    phone_type INT DEFAULT NULL COMMENT '手机类型',
+    wx_realname VARCHAR(64) DEFAULT NULL COMMENT '微信实名人',
+    wx_phone VARCHAR(32) DEFAULT NULL COMMENT '微信手机号',
+    wx_password VARCHAR(128) DEFAULT NULL COMMENT '微信密码',
+    remark VARCHAR(512) DEFAULT NULL COMMENT '备注',
+    create_time DATETIME DEFAULT NULL COMMENT '原创建时间',
+    update_time DATETIME DEFAULT NULL COMMENT '原最后更新时间',
+    archive_time DATETIME DEFAULT NULL COMMENT '归档时间',
+    PRIMARY KEY (id),
+    KEY idx_device_code (device_code),
+    KEY idx_account_type (account_type),
+    KEY idx_archive_time (archive_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='手机设备-作废账号归档表';
+
+INSERT INTO phone_device (device_code, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark) VALUES
+('P2024-001', 'P2024-001', '科技A客服01', '科技A', '张三', '13800138001', 'A机房-1排001', 1, 1, 1, 1, 1, 1, 2, '李四', '13800138002', 'wx_pwd_001', '核心设备'),
+('P2024-002', 'P2024-002', '电商B客服01', '电商B', '王五', '13800138003', 'A机房-1排002', 1, 1, 2, 2, 1, 1, 2, '张三', '13800138004', 'wx_pwd_002', '高并发使用'),
+('MT2024', 'MT2024', '备用设备', '科技A', '赵六', '13800138005', 'B机房-2排015', 1, 4, 1, 3, 2, 1, 3, '孙七', '13811112222', 'wx_pwd_003', '摩托罗拉主设备');
+
+INSERT INTO phone_sub_account (device_code, account_index, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark, create_time) VALUES
+('MT2024', '1', 'MT2024-1', '摩托子号01', '科技A', '张三', '13811113333', 'B机房-2排015', 1, 1, 1, 1, 1, 1, 3, '', '13811114444', 'wx_sub_001', '摩托罗拉子号测试数据', NOW());
+
+INSERT INTO phone_realname (real_name, colleague_status, colleague_name, scan_status, remark) VALUES
+('测试实名人', 'active', '系统初始化', 2, '手机设备页面测试数据');
+
+INSERT INTO phone_card (iccd, agent_name, phone_number, realname_id, realname_name, usage_status, card_status, operator_type, remark) VALUES
+('89860000000000000001', 'XX科技有限公司', '13900000001', 6, '测试实名人', 1, 1, 1, '手机设备页面测试手机号');
+
+INSERT INTO phone_device (device_code, phone_no, wechat_nickname, entity_name, wechat_person, wechat_phone, phone_location, wechat_status, use_status, dept, wechat_usage, wx_status, wx_usage, phone_type, wx_realname, wx_phone, wx_password, remark) VALUES
+('TEST001', 'TEST001', '测试企微01', '科技A', '测试实名人', '13900000001', '测试机架-001', 1, 1, 1, 1, 1, 1, 1, '', '13900000001', 'test_wx_001', '手机设备页面初始化测试数据');
 
 -- 手机设备字典数据
 INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_wechat_status', '0', '无', 0),
 ('phone_device_wechat_status', '1', '正常', 1),
 ('phone_device_wechat_status', '2', '已作废', 2),
 ('phone_device_wechat_status', '3', '已注销', 3),
@@ -481,6 +558,7 @@ INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
 ('phone_device_wechat_usage', '4', '群主号', 4);
 
 INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order) VALUES
+('phone_device_wx_status', '0', '无', 0),
 ('phone_device_wx_status', '1', '正常', 1),
 ('phone_device_wx_status', '2', '封禁中', 2);
 
