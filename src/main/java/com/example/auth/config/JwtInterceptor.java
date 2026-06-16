@@ -31,7 +31,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         Claims claims = jwtUtil.parseToken(token);
         if (claims == null) {
-            writeUnauthorized(response, "token无效或已过期");
+            writeUnauthorized(response, "token无效，请重新登录");
             return false;
         }
         Object userId = claims.get("userId");
