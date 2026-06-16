@@ -16,9 +16,6 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
     public String generateToken(Long userId, String username) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
@@ -26,7 +23,6 @@ public class JwtUtil {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
     }
@@ -44,7 +40,7 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         Claims claims = parseToken(token);
-        return claims != null && claims.getExpiration().after(new Date());
+        return claims != null;
     }
 
     public Long getUserIdFromToken(String token) {
