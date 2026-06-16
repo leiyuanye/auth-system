@@ -21,7 +21,8 @@ public class AuthController {
             LoginUser user = authService.login(request);
             return Result.ok(user);
         } catch (Exception e) {
-            return Result.fail(401, e.getMessage());
+            // 登录失败返回400，避免被前端401拦截器误判为token过期
+            return Result.fail(400, e.getMessage());
         }
     }
 }
