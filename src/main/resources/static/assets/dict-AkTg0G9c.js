@@ -1,0 +1,1 @@
+import{s as e}from"./index-B2Mf3gPb.js";function d(t){return e({url:`/dict/type/${t}`,method:"get"})}function i(t){return e({url:"/dict",method:"post",data:t})}function c(t,r){return e({url:`/dict/${t}`,method:"put",data:r})}function n(t){return e({url:`/dict/${t}`,method:"delete"})}export{i as a,n as d,d as g,c as u};

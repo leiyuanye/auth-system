@@ -1,0 +1,1 @@
+import{u as t,i as e,a as r,b as i,c as l,d as n,f as o,g as v,h as u}from"./echarts-BSILuEwq.js";import{s}from"./index-B2Mf3gPb.js";t([e,r,i,l,n,o,v,u]);function h(a){return s({url:"/stats/phone/overview",method:"get",params:a||{}})}function c(){return s({url:"/stats/server/overview",method:"get"})}export{c as a,h as g};
