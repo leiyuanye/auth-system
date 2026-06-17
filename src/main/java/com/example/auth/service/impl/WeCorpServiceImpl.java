@@ -15,13 +15,13 @@ public class WeCorpServiceImpl implements WeCorpService {
     private WeCorpMapper weCorpMapper;
 
     @Override
-    public List<WeCorp> selectByCondition(String keyword, String corpStatus, String customerType, int offset, int size) {
-        return weCorpMapper.selectByCondition(keyword, corpStatus, customerType, offset, size);
+    public List<WeCorp> selectByCondition(List<String> subjectShorts, List<String> customerTypes, String keyword, int offset, int size) {
+        return weCorpMapper.selectByCondition(subjectShorts, customerTypes, keyword, offset, size);
     }
 
     @Override
-    public int countByCondition(String keyword, String corpStatus, String customerType) {
-        return weCorpMapper.countByCondition(keyword, corpStatus, customerType);
+    public int countByCondition(List<String> subjectShorts, List<String> customerTypes, String keyword) {
+        return weCorpMapper.countByCondition(subjectShorts, customerTypes, keyword);
     }
 
     @Override

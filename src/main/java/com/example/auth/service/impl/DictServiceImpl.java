@@ -20,16 +20,6 @@ public class DictServiceImpl implements DictService {
     }
 
     @Override
-    public List<Dict> selectAll() {
-        return dictMapper.selectAll();
-    }
-
-    @Override
-    public Dict selectById(Long id) {
-        return dictMapper.selectById(id);
-    }
-
-    @Override
     public int insert(Dict dict) {
         return dictMapper.insert(dict);
     }

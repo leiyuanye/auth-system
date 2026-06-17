@@ -5,8 +5,8 @@ import com.example.auth.entity.WeCorp;
 import java.util.List;
 
 public interface WeCorpService {
-    List<WeCorp> selectByCondition(String keyword, String corpStatus, String customerType, int offset, int size);
-    int countByCondition(String keyword, String corpStatus, String customerType);
+    List<WeCorp> selectByCondition(List<String> subjectShorts, List<String> customerTypes, String keyword, int offset, int size);
+    int countByCondition(List<String> subjectShorts, List<String> customerTypes, String keyword);
     WeCorp selectById(Long id);
     int insert(WeCorp weCorp);
     int update(WeCorp weCorp);
