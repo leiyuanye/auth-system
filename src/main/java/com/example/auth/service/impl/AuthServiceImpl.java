@@ -71,10 +71,15 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("用户存在 - userId={}, username={}, status={}", user.getId(), user.getUsername(), user.getStatus());
 
-        // BCrypt密码比对
-        boolean passwordMatch = passwordEncoder.matches(password, user.getPassword());
-
-        log.info("密码校验 - 匹配结果={}", passwordMatch);
+        boolean passwordMatch;
+        if (user.getPassword().startsWith("$2a$") || user.getPassword().startsWith("$2b$") || user.getPassword().startsWith("$2y$")) {
+            passwordMatch = passwordEncoder.matches(password, user.getPassword());
+            log.info("密码校验 - 使用BCrypt验证，匹配结果={}", passwordMatch);
+        } else {
+            String md5Password = org.apache.commons.codec.digest.DigestUtils.md5Hex(password).toLowerCase();
+            passwordMatch = md5Password.equals(user.getPassword());
+            log.info("密码校验 - 使用MD5验证，匹配结果={}", passwordMatch);
+        }
 
         if (!passwordMatch) {
             log.warn("登录失败：密码错误，用户名={}", username);
