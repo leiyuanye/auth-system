@@ -28,7 +28,8 @@ mybatis:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 jwt:
-  secret: auth-system-secret-key-please-change-this-in-production  # 已移除token过期验证
+  secret: auth-system-secret-key-please-change-this-in-production
+  expire-hours: 24
 
 logging:
   level:

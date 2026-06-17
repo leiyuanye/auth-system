@@ -26,4 +26,6 @@ public interface PhoneSubAccountMapper {
 
     // 统计某个主设备的子账号数量（用于限制最多 5 个）
     int countByDeviceCode(@Param("deviceCode") String deviceCode);
+
+    List<PhoneSubAccount> selectByDeviceCodes(@Param("deviceCodes") List<String> deviceCodes);
 }

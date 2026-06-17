@@ -60,6 +60,17 @@
         SELECT COUNT(*) FROM phone_sub_account WHERE device_code = #{deviceCode}
     </select>
 
+    <!-- 批量按 device_code 查询（解决N+1问题） -->
+    <select id="selectByDeviceCodes" resultMap="PhoneSubAccountMap">
+        SELECT <include refid="baseColumns"/>
+        FROM phone_sub_account
+        WHERE device_code IN
+        <foreach collection="deviceCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+        ORDER BY device_code, CAST(account_index AS UNSIGNED)
+    </select>
+
     <!-- 新增子账号 -->
     <insert id="insert" parameterType="com.example.auth.entity.PhoneSubAccount" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO phone_sub_account (

@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.example.auth.annotation.RateLimit;
 import com.example.auth.common.Result;
 import com.example.auth.dto.LoginRequest;
 import com.example.auth.dto.LoginUser;
@@ -16,6 +17,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
+    @RateLimit(max = 10, timeWindow = 60)
     public Result<LoginUser> login(@RequestBody LoginRequest request) {
         try {
             LoginUser user = authService.login(request);

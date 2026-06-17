@@ -11,8 +11,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private JwtInterceptor jwtInterceptor;
 
+    @Autowired
+    private RateLimitInterceptor rateLimitInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(rateLimitInterceptor)
+                .addPathPatterns("/api/**");
+
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/login");

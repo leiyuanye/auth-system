@@ -12,9 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -33,6 +32,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public LoginUser login(LoginRequest request) {
@@ -70,14 +71,10 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("用户存在 - userId={}, username={}, status={}", user.getId(), user.getUsername(), user.getStatus());
 
-        // MD5加密比对
-        String md5Password = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
-        boolean passwordMatch = md5Password.equals(user.getPassword());
+        // BCrypt密码比对
+        boolean passwordMatch = passwordEncoder.matches(password, user.getPassword());
 
-        log.info("密码校验 - 输入密码MD5={}, 数据库密码MD5={}, 匹配结果={}",
-                md5Password.substring(0, 8) + "...",
-                user.getPassword().substring(0, 8) + "...",
-                passwordMatch);
+        log.info("密码校验 - 匹配结果={}", passwordMatch);
 
         if (!passwordMatch) {
             log.warn("登录失败：密码错误，用户名={}", username);

@@ -16,13 +16,19 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
+    @Value("${jwt.expire-hours:24}")
+    private int expireHours;
+
     public String generateToken(Long userId, String username) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
+        Date now = new Date();
+        Date expireTime = new Date(now.getTime() + expireHours * 60 * 60 * 1000L);
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuedAt(new Date())
+                .setIssuedAt(now)
+                .setExpiration(expireTime)
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
     }
@@ -40,7 +46,10 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         Claims claims = parseToken(token);
-        return claims != null;
+        if (claims == null) {
+            return false;
+        }
+        return claims.getExpiration().after(new Date());
     }
 
     public Long getUserIdFromToken(String token) {
@@ -50,6 +59,14 @@ public class JwtUtil {
             if (userId instanceof Number) {
                 return ((Number) userId).longValue();
             }
+        }
+        return null;
+    }
+
+    public String getUsernameFromToken(String token) {
+        Claims claims = parseToken(token);
+        if (claims != null) {
+            return claims.get("username", String.class);
         }
         return null;
     }
