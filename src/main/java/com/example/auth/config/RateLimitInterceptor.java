@@ -61,7 +61,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_TOO_MANY_REQUESTS);
+        response.setStatus(429);
         try (PrintWriter writer = response.getWriter()) {
             ObjectMapper mapper = new ObjectMapper();
             writer.write(mapper.writeValueAsString(Result.fail(message)));
