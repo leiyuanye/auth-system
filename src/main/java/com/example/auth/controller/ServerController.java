@@ -3,7 +3,9 @@ package com.example.auth.controller;
 import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
+import com.example.auth.entity.Dict;
 import com.example.auth.entity.Server;
+import com.example.auth.mapper.DictMapper;
 import com.example.auth.mapper.ServerMapper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -26,6 +28,9 @@ public class ServerController {
 
     @Autowired
     private ServerMapper serverMapper;
+
+    @Autowired
+    private DictMapper dictMapper;
 
     @Autowired
     private OperateLogUtil logUtil;
@@ -164,14 +169,14 @@ public class ServerController {
 
     private String statusText(Object val) {
         if (val == null) return "";
-        int status = val instanceof Integer ? (Integer) val : Integer.parseInt(String.valueOf(val));
-        switch (status) {
-            case 1: return "运行中";
-            case 2: return "维护中";
-            case 3: return "已下线";
-            case 4: return "到期";
-            default: return String.valueOf(status);
+        String statusKey = String.valueOf(val);
+        List<Dict> statusDict = dictMapper.selectByType("server_status");
+        for (Dict dict : statusDict) {
+            if (statusKey.equals(dict.getDictKey())) {
+                return dict.getDictValue();
+            }
         }
+        return statusKey;
     }
 
     private Object getFieldValue(Server s, String field) {
@@ -222,10 +227,18 @@ public class ServerController {
                 exampleRow.createCell(i).setCellValue(exampleValues[i]);
             }
 
-            // 状态说明行
+            // 状态说明行 - 从数据库字典动态获取
             Row noteRow = sheet.createRow(2);
             Cell noteCell = noteRow.createCell(0);
-            noteCell.setCellValue("状态说明：1=运行中 2=维护中 3=已下线 4=到期");
+            StringBuilder statusNote = new StringBuilder("状态说明：");
+            List<Dict> statusDict = dictMapper.selectByType("server_status");
+            for (Dict dict : statusDict) {
+                if (statusNote.length() > 6) {
+                    statusNote.append(" ");
+                }
+                statusNote.append(dict.getDictKey()).append("=").append(dict.getDictValue());
+            }
+            noteCell.setCellValue(statusNote.toString());
 
             // 自动列宽
             for (int i = 0; i < IMPORT_HEADERS.length; i++) {
