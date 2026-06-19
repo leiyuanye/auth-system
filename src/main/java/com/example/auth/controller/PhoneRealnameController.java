@@ -3,7 +3,9 @@ package com.example.auth.controller;
 import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
+import com.example.auth.entity.Dict;
 import com.example.auth.entity.PhoneRealname;
+import com.example.auth.mapper.DictMapper;
 import com.example.auth.mapper.PhoneRealnameMapper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -25,6 +27,9 @@ public class PhoneRealnameController {
 
     @Autowired
     private PhoneRealnameMapper realnameMapper;
+
+    @Autowired
+    private DictMapper dictMapper;
 
     @Autowired
     private OperateLogUtil logUtil;
@@ -277,14 +282,20 @@ public class PhoneRealnameController {
         }
     }
 
-    private String scanStatusText(Integer v) {
-        if (v == null) return "-";
-        switch (v) {
-            case 1: return "不能扫脸";
-            case 2: return "方便扫脸";
-            case 3: return "较难扫脸";
-            default: return "-";
+    private String getDictValue(String dictType, Integer dictKey) {
+        if (dictKey == null) return "-";
+        List<Dict> list = dictMapper.selectByType(dictType);
+        if (list == null) return "-";
+        for (Dict d : list) {
+            if (String.valueOf(dictKey).equals(d.getDictKey())) {
+                return d.getDictValue();
+            }
         }
+        return "-";
+    }
+
+    private String scanStatusText(Integer v) {
+        return getDictValue("colleague_status", v);
     }
 
     private String parseColleagueStatus(String v) {

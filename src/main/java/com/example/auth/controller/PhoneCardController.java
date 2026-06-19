@@ -3,7 +3,9 @@ package com.example.auth.controller;
 import com.example.auth.common.OperateLogUtil;
 import com.example.auth.common.PageResult;
 import com.example.auth.common.Result;
+import com.example.auth.entity.Dict;
 import com.example.auth.entity.PhoneCard;
+import com.example.auth.mapper.DictMapper;
 import com.example.auth.mapper.PhoneCardMapper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -28,15 +30,18 @@ public class PhoneCardController {
     private PhoneCardMapper cardMapper;
 
     @Autowired
+    private DictMapper dictMapper;
+
+    @Autowired
     private OperateLogUtil logUtil;
 
     private static final String MODULE_NAME = "手机卡管理";
 
     private static final String[] EXPORT_HEADERS = {
-            "ICCID", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"
+            "卡号(ICCID)", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"
     };
     private static final String[] IMPORT_HEADERS = {
-            "ICCID", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注"
+            "卡号(ICCID)", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注"
     };
 
     private String currentUser(HttpServletRequest request) {
@@ -292,34 +297,28 @@ public class PhoneCardController {
 
     // ==================== 辅助方法 ====================
 
-    private String operatorText(Integer v) {
-        if (v == null) return "-";
-        switch (v) {
-            case 1: return "移动";
-            case 2: return "联通";
-            case 3: return "电信";
-            case 4: return "其他";
-            default: return "-";
+    private String getDictValue(String dictType, Integer dictKey) {
+        if (dictKey == null) return "-";
+        List<Dict> list = dictMapper.selectByType(dictType);
+        if (list == null) return "-";
+        for (Dict d : list) {
+            if (String.valueOf(dictKey).equals(d.getDictKey())) {
+                return d.getDictValue();
+            }
         }
+        return "-";
+    }
+
+    private String operatorText(Integer v) {
+        return getDictValue("phone_operator", v);
     }
 
     private String usageText(Integer v) {
-        if (v == null) return "-";
-        switch (v) {
-            case 1: return "在用";
-            case 2: return "备用";
-            default: return "-";
-        }
+        return getDictValue("phone_usage_status", v);
     }
 
     private String cardStatusText(Integer v) {
-        if (v == null) return "-";
-        switch (v) {
-            case 1: return "正常";
-            case 2: return "二次实名";
-            case 3: return "欠费";
-            default: return "-";
-        }
+        return getDictValue("phone_card_status", v);
     }
 
     private Integer parseOperator(String v) {
