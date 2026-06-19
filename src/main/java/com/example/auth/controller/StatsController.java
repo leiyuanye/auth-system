@@ -6,20 +6,22 @@ import com.example.auth.dto.MonthCountItem;
 import com.example.auth.dto.OperatorCountItem;
 import com.example.auth.dto.RealnameDetailItem;
 import com.example.auth.dto.StatusCountItem;
+import com.example.auth.entity.Dict;
 import com.example.auth.entity.Server;
+import com.example.auth.mapper.DictMapper;
 import com.example.auth.mapper.PhoneCardMapper;
 import com.example.auth.mapper.ServerMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 统计/Overview 接口
  * path: /api/stats
+ *
+ * 注意：统计方法中的状态值均从数据库字典动态获取，避免硬编码导致字典修改后统计错误
  */
 @RestController
 @RequestMapping("/api/stats")
@@ -32,6 +34,9 @@ public class StatsController {
     @Autowired
     private ServerMapper serverMapper;
 
+    @Autowired
+    private DictMapper dictMapper;
+
     /**
      * 手机卡数据总览
      */
@@ -42,9 +47,32 @@ public class StatsController {
         Map<String, Object> data = new HashMap<>();
 
         data.put("totalCards", phoneCardMapper.countTotal());
-        data.put("activeCards", phoneCardMapper.countByUsageStatus(1));
-        data.put("backupCards", phoneCardMapper.countByUsageStatus(2));
-        data.put("warningCards", phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3));
+
+        // 从字典动态获取使用状态值
+        Map<String, Integer> usageStatusMap = getDictKeyToIntMap("phone_usage_status");
+        int activeUsageStatus = getDictKeyAsInt("phone_usage_status", "在用", 1);
+        int backupUsageStatus = getDictKeyAsInt("phone_usage_status", "备用", 2);
+        data.put("activeCards", phoneCardMapper.countByUsageStatus(activeUsageStatus));
+        data.put("backupCards", phoneCardMapper.countByUsageStatus(backupUsageStatus));
+
+        // 从字典动态获取卡状态值（预警 = 非"正常"的状态）
+        int normalCardStatus = getDictKeyAsInt("phone_card_status", "正常", 1);
+        List<Dict> cardStatusDict = dictMapper.selectByType("phone_card_status");
+        int warningCount = 0;
+        if (cardStatusDict != null) {
+            for (Dict d : cardStatusDict) {
+                try {
+                    int statusVal = Integer.parseInt(d.getDictKey());
+                    if (statusVal != normalCardStatus) {
+                        warningCount += phoneCardMapper.countByCardStatus(statusVal);
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        } else {
+            // 兜底：旧逻辑（假设2=异常,3=欠费）
+            warningCount = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
+        }
+        data.put("warningCards", warningCount);
 
         List<AgentCountItem> agentDist = phoneCardMapper.countByAgent();
         data.put("agentDistribution", agentDist);
@@ -73,30 +101,47 @@ public class StatsController {
 
     /**
      * 服务器总览：不再区分在用/备用，按状态 + 类型分布
+     * 状态值从数据库字典动态获取
      */
     @GetMapping("/server/overview")
     public Result<Map<String, Object>> serverOverview() {
         Map<String, Object> data = new HashMap<>();
 
         int total = serverMapper.countTotal();
-        int running = serverMapper.countByServerStatus(1);   // 运行中
-        int maintenance = serverMapper.countByServerStatus(2); // 维护中
-        int offline = serverMapper.countByServerStatus(3);     // 已下线
-        int expired = serverMapper.countByServerStatus(4);     // 到期
-
         data.put("totalServers", total);
-        data.put("runningServers", running);
-        data.put("maintenanceServers", maintenance);
-        data.put("offlineServers", offline);
-        data.put("expiredServers", expired);
+
+        // 从字典动态获取服务器状态值
+        List<Dict> statusDict = dictMapper.selectByType("server_status");
+        Map<String, Integer> statusCountMap = new HashMap<>();
+
+        if (statusDict != null && !statusDict.isEmpty()) {
+            // 初始化各状态计数为0
+            for (Dict d : statusDict) {
+                try {
+                    int statusVal = Integer.parseInt(d.getDictKey());
+                    statusCountMap.put(d.getDictValue(), serverMapper.countByServerStatus(statusVal));
+                } catch (NumberFormatException ignored) {}
+            }
+        } else {
+            // 兜底：旧逻辑（假设1=运行中,2=维护中,3=已下线,4=到期）
+            statusCountMap.put("运行中", serverMapper.countByServerStatus(1));
+            statusCountMap.put("维护中", serverMapper.countByServerStatus(2));
+            statusCountMap.put("已下线", serverMapper.countByServerStatus(3));
+            statusCountMap.put("到期", serverMapper.countByServerStatus(4));
+        }
+
+        data.put("runningServers", statusCountMap.getOrDefault("运行中", 0));
+        data.put("maintenanceServers", statusCountMap.getOrDefault("维护中", 0));
+        data.put("offlineServers", statusCountMap.getOrDefault("已下线", 0));
+        data.put("expiredServers", statusCountMap.getOrDefault("到期", 0));
 
         // 服务器类型分布
         List<Server> allServers = serverMapper.selectAllForExport();
         List<Map<String, Object>> typeDist = (allServers == null ? new ArrayList<Server>() : allServers)
                 .stream()
-                .collect(java.util.stream.Collectors.groupingBy(
+                .collect(Collectors.groupingBy(
                         s -> s.getServerType() != null ? s.getServerType() : "未知",
-                        java.util.stream.Collectors.counting()
+                        Collectors.counting()
                 ))
                 .entrySet().stream()
                 .map(e -> {
@@ -105,7 +150,7 @@ public class StatsController {
                     m.put("count", e.getValue());
                     return m;
                 })
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
         data.put("typeDistribution", typeDist);
 
         return Result.ok(data);
@@ -113,6 +158,7 @@ public class StatsController {
 
     /**
      * 首页聚合统计
+     * 状态值从数据库字典动态获取
      */
     @GetMapping("/home")
     public Result<Map<String, Object>> homeStats() {
@@ -120,24 +166,43 @@ public class StatsController {
 
         int totalCards = phoneCardMapper.countTotal();
         int totalServers = serverMapper.countTotal();
-        int activeCards = phoneCardMapper.countByUsageStatus(1);
-        int warningCards = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
-        int runningServers = serverMapper.countByServerStatus(1); // 运行中
-        int expiredServers = serverMapper.countByServerStatus(4); // 到期(异常)
-
         data.put("totalCards", totalCards);
         data.put("totalServers", totalServers);
-        data.put("activeCards", activeCards);
-        data.put("warningCards", warningCards);
-        data.put("runningServers", runningServers);
-        data.put("warningServers", expiredServers);
+
+        // 从字典动态获取使用状态值
+        int activeUsageStatus = getDictKeyAsInt("phone_usage_status", "在用", 1);
+        data.put("activeCards", phoneCardMapper.countByUsageStatus(activeUsageStatus));
+
+        // 从字典动态获取卡状态值（预警 = 非"正常"的状态）
+        int normalCardStatus = getDictKeyAsInt("phone_card_status", "正常", 1);
+        List<Dict> cardStatusDict = dictMapper.selectByType("phone_card_status");
+        int warningCount = 0;
+        if (cardStatusDict != null) {
+            for (Dict d : cardStatusDict) {
+                try {
+                    int statusVal = Integer.parseInt(d.getDictKey());
+                    if (statusVal != normalCardStatus) {
+                        warningCount += phoneCardMapper.countByCardStatus(statusVal);
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        } else {
+            warningCount = phoneCardMapper.countByCardStatus(2) + phoneCardMapper.countByCardStatus(3);
+        }
+        data.put("warningCards", warningCount);
+
+        // 从字典动态获取服务器状态值
+        int runningStatus = getDictKeyAsInt("server_status", "运行中", 1);
+        int expiredStatus = getDictKeyAsInt("server_status", "到期", 4);
+        data.put("runningServers", serverMapper.countByServerStatus(runningStatus));
+        data.put("warningServers", serverMapper.countByServerStatus(expiredStatus));
 
         List<Map<String, Object>> monthlyCardTrend = phoneCardMapper.selectByCondition(null, null, null, null, null, null, 0)
                 .stream()
                 .filter(c -> c.getCreateTime() != null)
-                .collect(java.util.stream.Collectors.groupingBy(
+                .collect(Collectors.groupingBy(
                         c -> new java.text.SimpleDateFormat("yyyy-MM").format(c.getCreateTime()),
-                        java.util.stream.Collectors.counting()
+                        Collectors.counting()
                 ))
                 .entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
@@ -148,9 +213,50 @@ public class StatsController {
                     return m;
                 })
                 .limit(6)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
         data.put("monthlyCardTrend", monthlyCardTrend);
 
         return Result.ok(data);
+    }
+
+    // ==================== 私有辅助方法 ====================
+
+    /**
+     * 根据字典类型和字典值获取对应的整型键
+     * @param dictType 字典类型
+     * @param dictValue 字典显示值
+     * @param defaultValue 默认值（字典查询失败时使用）
+     * @return 整型键值
+     */
+    private int getDictKeyAsInt(String dictType, String dictValue, int defaultValue) {
+        List<Dict> dictList = dictMapper.selectByType(dictType);
+        if (dictList != null) {
+            for (Dict d : dictList) {
+                if (dictValue.equals(d.getDictValue())) {
+                    try {
+                        return Integer.parseInt(d.getDictKey());
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * 获取字典类型到整型键的映射
+     * @param dictType 字典类型
+     * @return 字典值 -> 整型键 的映射
+     */
+    private Map<String, Integer> getDictKeyToIntMap(String dictType) {
+        Map<String, Integer> map = new HashMap<>();
+        List<Dict> dictList = dictMapper.selectByType(dictType);
+        if (dictList != null) {
+            for (Dict d : dictList) {
+                try {
+                    map.put(d.getDictValue(), Integer.parseInt(d.getDictKey()));
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return map;
     }
 }
