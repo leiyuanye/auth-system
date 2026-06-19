@@ -10,7 +10,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -105,7 +104,7 @@ public class PhoneRealnameController {
      * 导出实名人员数据为 Excel
      */
     @GetMapping("/export")
-    public StreamingResponseBody exportExcel(
+    public void exportExcel(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer scanStatus,
             @RequestParam(required = false) String colleagueStatus,
@@ -114,85 +113,85 @@ public class PhoneRealnameController {
         String filename = "实名人员数据_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
-        return outputStream -> {
-            try (Workbook wb = new XSSFWorkbook()) {
-                Sheet sheet = wb.createSheet("实名人员数据");
-                CellStyle headerStyle = wb.createCellStyle();
-                Font headerFont = wb.createFont();
-                headerFont.setBold(true);
-                headerStyle.setFont(headerFont);
-                headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        try (Workbook wb = new XSSFWorkbook();
+             OutputStream outputStream = response.getOutputStream()) {
+            Sheet sheet = wb.createSheet("实名人员数据");
+            CellStyle headerStyle = wb.createCellStyle();
+            Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-                Row headerRow = sheet.createRow(0);
-                for (int i = 0; i < EXPORT_HEADERS.length; i++) {
-                    Cell cell = headerRow.createCell(i);
-                    cell.setCellValue(EXPORT_HEADERS[i]);
-                    cell.setCellStyle(headerStyle);
-                }
-
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                int rowIdx = 1;
-                for (PhoneRealname realname : list) {
-                    Row row = sheet.createRow(rowIdx++);
-                    row.createCell(0).setCellValue(realname.getId() != null ? realname.getId() : 0);
-                    row.createCell(1).setCellValue(realname.getRealName() != null ? realname.getRealName() : "");
-                    row.createCell(2).setCellValue(colleagueStatusText(realname.getColleagueStatus()));
-                    row.createCell(3).setCellValue(realname.getColleagueName() != null ? realname.getColleagueName() : "");
-                    row.createCell(4).setCellValue(scanStatusText(realname.getScanStatus()));
-                    row.createCell(5).setCellValue(realname.getRemark() != null ? realname.getRemark() : "");
-                    row.createCell(6).setCellValue(realname.getCreateTime() != null ? sdf.format(realname.getCreateTime()) : "");
-                }
-
-                for (int i = 0; i < EXPORT_HEADERS.length; i++) {
-                    sheet.autoSizeColumn(i);
-                }
-
-                wb.write(outputStream);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < EXPORT_HEADERS.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(EXPORT_HEADERS[i]);
+                cell.setCellStyle(headerStyle);
             }
-        };
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            int rowIdx = 1;
+            for (PhoneRealname realname : list) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(realname.getId() != null ? realname.getId() : 0);
+                row.createCell(1).setCellValue(realname.getRealName() != null ? realname.getRealName() : "");
+                row.createCell(2).setCellValue(colleagueStatusText(realname.getColleagueStatus()));
+                row.createCell(3).setCellValue(realname.getColleagueName() != null ? realname.getColleagueName() : "");
+                row.createCell(4).setCellValue(scanStatusText(realname.getScanStatus()));
+                row.createCell(5).setCellValue(realname.getRemark() != null ? realname.getRemark() : "");
+                row.createCell(6).setCellValue(realname.getCreateTime() != null ? sdf.format(realname.getCreateTime()) : "");
+            }
+
+            for (int i = 0; i < EXPORT_HEADERS.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            wb.write(outputStream);
+            outputStream.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 下载导入模板
      */
     @GetMapping("/template")
-    public StreamingResponseBody downloadTemplate(HttpServletResponse response) throws java.io.UnsupportedEncodingException {
+    public void downloadTemplate(HttpServletResponse response) throws java.io.UnsupportedEncodingException {
         String filename = "实名人员导入模板.xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
-        return outputStream -> {
-            try (Workbook wb = new XSSFWorkbook()) {
-                Sheet sheet = wb.createSheet("实名人员导入模板");
-                CellStyle headerStyle = wb.createCellStyle();
-                Font headerFont = wb.createFont();
-                headerFont.setBold(true);
-                headerStyle.setFont(headerFont);
-                headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        try (Workbook wb = new XSSFWorkbook();
+             OutputStream outputStream = response.getOutputStream()) {
+            Sheet sheet = wb.createSheet("实名人员导入模板");
+            CellStyle headerStyle = wb.createCellStyle();
+            Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-                Row headerRow = sheet.createRow(0);
-                for (int i = 0; i < IMPORT_HEADERS.length; i++) {
-                    Cell cell = headerRow.createCell(i);
-                    cell.setCellValue(IMPORT_HEADERS[i]);
-                    cell.setCellStyle(headerStyle);
-                }
-
-                for (int i = 0; i < IMPORT_HEADERS.length; i++) {
-                    sheet.setColumnWidth(i, 18 * 256);
-                }
-
-                Row exampleRow = sheet.createRow(1);
-                String[] exampleValues = {"张三", "在职", "李四", "方便扫脸", "备注"};
-                for (int i = 0; i < exampleValues.length; i++) {
-                    exampleRow.createCell(i).setCellValue(exampleValues[i]);
-                }
-
-                wb.write(outputStream);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < IMPORT_HEADERS.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(IMPORT_HEADERS[i]);
+                cell.setCellStyle(headerStyle);
             }
-        };
+
+            for (int i = 0; i < IMPORT_HEADERS.length; i++) {
+                sheet.setColumnWidth(i, 18 * 256);
+            }
+
+            Row exampleRow = sheet.createRow(1);
+            String[] exampleValues = {"张三", "在职", "李四", "方便扫脸", "备注"};
+            for (int i = 0; i < exampleValues.length; i++) {
+                exampleRow.createCell(i).setCellValue(exampleValues[i]);
+            }
+
+            wb.write(outputStream);
+            outputStream.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
