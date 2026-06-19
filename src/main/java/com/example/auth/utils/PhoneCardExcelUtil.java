@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class PhoneCardExcelUtil {
 
-    private static final String[] HEADERS = {"ICCID", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注"};
+    private static final String[] HEADERS = {"卡号(ICCID)", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注"};
 
     /**
      * 生成Excel模板
@@ -105,7 +105,7 @@ public class PhoneCardExcelUtil {
 
             // 创建标题行
             Row headerRow = sheet.createRow(0);
-            String[] exportHeaders = {"ID", "ICCID", "运营商", "使用状态", "状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"};
+            String[] exportHeaders = {"ID", "卡号(ICCID)", "运营商", "使用状态", "卡状态", "代理商", "手机号", "实名人", "备注", "创建时间", "更新时间"};
             for (int i = 0; i < exportHeaders.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(exportHeaders[i]);
