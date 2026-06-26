@@ -16,6 +16,10 @@
         ORDER BY sort_order ASC, id ASC
     </select>
 
+    <select id="selectById" resultMap="DictMap">
+        SELECT * FROM sys_dict WHERE id = #{id}
+    </select>
+
     <insert id="insert" parameterType="com.example.auth.entity.Dict" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO sys_dict (dict_type, dict_key, dict_value, sort_order)
         VALUES (#{dictType}, #{dictKey}, #{dictValue}, #{sortOrder})
@@ -33,5 +37,20 @@
     <delete id="deleteById">
         DELETE FROM sys_dict WHERE id = #{id}
     </delete>
+
+    <!-- 级联更新：精确匹配替换 -->
+    <update id="cascadeUpdateValue">
+        UPDATE ${tableName} SET ${columnName} = #{newValue} WHERE ${columnName} = #{oldValue}
+    </update>
+
+    <!-- 级联更新：逗号分隔字段中的值替换 -->
+    <update id="cascadeUpdateCsvValue">
+        UPDATE ${tableName}
+        SET ${columnName} = REPLACE(${columnName}, #{oldValue}, #{newValue})
+        WHERE ${columnName} = #{oldValue}
+           OR ${columnName} LIKE CONCAT(#{oldValue}, ',%')
+           OR ${columnName} LIKE CONCAT('%,', #{oldValue})
+           OR ${columnName} LIKE CONCAT('%,', #{oldValue}, ',%')
+    </update>
 
 </mapper>
