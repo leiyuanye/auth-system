@@ -45,11 +45,11 @@ public class DictController {
         // 企微主体状态 → we_corp.corp_status
         addCascade("we_corp_status", "we_corp", "corp_status", false);
 
-        // 服务器类型 → server.server_type
-        addCascade("server_type", "server", "server_type", false);
+        // 服务器类型 → sys_server.server_type
+        addCascade("server_type", "sys_server", "server_type", false);
 
-        // 服务器分组 → server.specs
-        addCascade("server_group", "server", "specs", false);
+        // 服务器分组 → sys_server.specs
+        addCascade("server_group", "sys_server", "specs", false);
 
         // 手机卡代理商 → phone_card.agent_name
         addCascade("phone_agent", "phone_card", "agent_name", false);
