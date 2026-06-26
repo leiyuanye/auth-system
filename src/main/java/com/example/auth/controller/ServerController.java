@@ -143,7 +143,11 @@ public class ServerController {
                     } else if (val instanceof Date) {
                         cell.setCellValue(sdf.format((Date) val));
                     } else if ("serverStatus".equals(EXPORT_COLS[i])) {
-                        cell.setCellValue(statusText(val));
+                        cell.setCellValue(dictKeyToValue("server_status", String.valueOf(val)));
+                    } else if ("serverType".equals(EXPORT_COLS[i])) {
+                        cell.setCellValue(dictKeyToValue("server_type", String.valueOf(val)));
+                    } else if ("specs".equals(EXPORT_COLS[i])) {
+                        cell.setCellValue(dictKeyToValue("server_group", String.valueOf(val)));
                     } else {
                         cell.setCellValue(String.valueOf(val));
                     }
@@ -167,16 +171,19 @@ public class ServerController {
         }
     }
 
-    private String statusText(Object val) {
-        if (val == null) return "";
-        String statusKey = String.valueOf(val);
-        List<Dict> statusDict = dictMapper.selectByType("server_status");
-        for (Dict dict : statusDict) {
-            if (statusKey.equals(dict.getDictKey())) {
+    /**
+     * 将 dict_key 转换为 dict_value（用于导出显示）
+     */
+    private String dictKeyToValue(String dictType, String key) {
+        if (key == null || key.isEmpty()) return "";
+        List<Dict> dictList = dictMapper.selectByType(dictType);
+        for (Dict dict : dictList) {
+            if (key.equals(dict.getDictKey())) {
                 return dict.getDictValue();
             }
         }
-        return statusKey;
+        // 如果找不到 key 匹配，可能是旧的文本值，直接返回
+        return key;
     }
 
     private Object getFieldValue(Server s, String field) {
@@ -300,9 +307,9 @@ public class ServerController {
                 Server s = new Server();
                 s.setServerName(getCellString(row.getCell(0)));
                 s.setIpAddress(getCellString(row.getCell(1)));
-                s.setServerType(getCellString(row.getCell(2)));
+                s.setServerType(resolveDictKey("server_type", getCellString(row.getCell(2))));
                 s.setLocation(getCellString(row.getCell(3)));
-                s.setSpecs(getCellString(row.getCell(4)));
+                s.setSpecs(resolveDictKey("server_group", getCellString(row.getCell(4))));
                 s.setMfaKey(getCellString(row.getCell(5)));
                 String statusStr = getCellString(row.getCell(6));
                 if (statusStr != null && !statusStr.isEmpty()) {
@@ -336,6 +343,32 @@ public class ServerController {
             e.printStackTrace();
             return Result.fail("导入失败：" + e.getMessage());
         }
+    }
+
+    /**
+     * 将字典文本值转换为 dict_key
+     * 如果输入已经是 dict_key（纯数字且存在于字典中），直接返回
+     * 如果输入是文本，查找匹配的 dict_value 并返回对应的 dict_key
+     * 找不到则原样返回（兜底）
+     */
+    private String resolveDictKey(String dictType, String value) {
+        if (value == null || value.trim().isEmpty()) return value;
+        value = value.trim();
+        List<Dict> dictList = dictMapper.selectByType(dictType);
+        // 先检查是否已经是 dict_key
+        for (Dict d : dictList) {
+            if (value.equals(d.getDictKey())) {
+                return value;
+            }
+        }
+        // 再按 dict_value 匹配（文本转 key）
+        for (Dict d : dictList) {
+            if (value.equals(d.getDictValue())) {
+                return d.getDictKey();
+            }
+        }
+        // 找不到则原样返回
+        return value;
     }
 
     private String getCellString(Cell cell) {
